@@ -73,15 +73,15 @@ An Example Game with Embedded Items:
 
 ## Wireframes
 
-/list - page to login
+/index.html - page to login
 
 ![list](public/img/loginscreen.png)
 
-/list/create - main page for online game
+/index.html - main page for online game
 
 ![list create](public/img/gamescreen.png)
 
-/list - page for seeing past moves
+/index.html - page for seeing past moves
 
 ![list](public/img/pastmoves.png)
 
