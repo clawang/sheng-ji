@@ -1,117 +1,118 @@
-The content below is an example project proposal / requirements document. Replace the text below the lines marked "__TODO__" with details specific to your project. Remove the "TODO" lines.
-
-(___TODO__: your project name_)
-
-# Shoppy Shoperson 
+# Online Sheng Ji
 
 ## Overview
 
-(___TODO__: a brief one or two paragraph, high-level description of your project_)
-
-Remembering what to buy at the grocery store is waaaaay too difficult. Also, shopping for groceries when you're hungry leads to regrettable purchases. Sooo... that's where Shoppy Shoperson comes in!
-
-Shoppy Shoperson is a web app that will allow users to keep track of multiple grocery lists. Users can register and login. Once they're logged in, they can create or view their grocery list. For every list that they have, they can add items to the list or cross off items.
+My family and I have a tradition where we play a Chinese card game at family get-togethers. Since my sister and I started college and my parents moved back to China, we rarely get the chance to play this game anymore. Therefore, Sheng Ji is a web app where you can play this game online.
 
 
 ## Data Model
 
-(___TODO__: a description of your application's data and their relationships to each other_) 
+The application will store Users, Teams, Rounds, and Games
 
-The application will store Users, Lists and Items
-
-* users can have multiple lists (via references)
-* each list can have multiple items (by embedding)
-
-(___TODO__: sample documents_)
+* teams have lists of users
+* teams have a corresponding game
+* games have lists of rounds and teams
 
 An Example User:
 
 ```javascript
 {
-  username: "shannonshopper",
-  hash: // a password hash,
-  lists: // an array of references to List documents
+  username: "clairewang",
+  password: // password,
 }
 ```
 
-An Example List with Embedded Items:
+An Example Team with Embedded Items:
 
 ```javascript
 {
-  user: // a reference to a User object
-  name: "Breakfast foods",
-  items: [
-    { name: "pancakes", quantity: "9876", checked: false},
-    { name: "ramen", quantity: "2", checked: true},
+  name: "team1",
+  users: [
+    { name: "clairewang"},
+    { name: "ninawang"},
   ],
-  createdAt: // timestamp
+  game: 01234 // reference to a game
+}
+```
+
+An Example Round with Embedded Items:
+
+```javascript
+{
+  game_id: 01234,
+  round_number: 1,
+  started: 2, //id of player who started
+  suit: 'spades', //suit of round
+  cards: [
+    //array of cards played in this round
+  ], //temporary number of 
+  points: // points earned during this round
+  winner: //who won the round
+}
+```
+
+An Example Game with Embedded Items:
+
+```javascript
+{
+  game_id: 01234,
+  rounds: [
+    //list of rounds
+  ],
+  teams: [
+    //list of teams (reference to team items)
+  ]
+  points: // points accumulated so far during the game
+  turn: //whose turn is it
+  round_index: //which round was in progress
 }
 ```
 
 
 ## [Link to Commented First Draft Schema](db.js) 
 
-(___TODO__: create a first draft of your Schemas in db.js and link to it_)
-
 ## Wireframes
 
-(___TODO__: wireframes for all of the pages on your site; they can be as simple as photos of drawings or you can use a tool like Balsamiq, Omnigraffle, etc._)
+/list - page to login
 
-/list/create - page for creating a new shopping list
+![list](public/img/loginscreen.png)
 
-![list create](documentation/list-create.png)
+/list/create - main page for online game
 
-/list - page for showing all shopping lists
+![list create](public/img/gamescreen.png)
 
-![list](documentation/list.png)
+/list - page for seeing past moves
 
-/list/slug - page for showing specific shopping list
-
-![list](documentation/list-slug.png)
+![list](public/img/pastmoves.png)
 
 ## Site map
 
-(___TODO__: draw out a site map that shows how pages are related to each other_)
-
-Here's a [complex example from wikipedia](https://upload.wikimedia.org/wikipedia/commons/2/20/Sitemap_google.jpg), but you can create one without the screenshots, drop shadows, etc. ... just names of pages and where they flow to.
+My app only has one page, index.html.
 
 ## User Stories or Use Cases
 
-(___TODO__: write out how your application will be used through [user stories](http://en.wikipedia.org/wiki/User_story#Format) and / or [use cases](https://www.mongodb.com/download-center?jmp=docs&_ga=1.47552679.1838903181.1489282706#previous)_)
-
 1. as non-registered user, I can register a new account with the site
 2. as a user, I can log in to the site
-3. as a user, I can create a new grocery list
-4. as a user, I can view all of the grocery lists I've created in a single list
-5. as a user, I can add items to an existing grocery list
-6. as a user, I can cross off items in an existing grocery list
+3. as a user, I can start a game
+4. as a user, I can join a game
+5. as a user, I can join a team
+6. as a user, I can make moves in a game
+7. as a user, I can view my past moves
+8. as a user, I can chat with other users in the game
 
 ## Research Topics
 
-(___TODO__: the research topics that you're planning on working on along with their point values... and the total points of research topics listed_)
+* (2 points) Use a CSS preprocesser
+    * I'm going to be using SASS
+* (5 points) Use a Javascript library
+    * I'm using socket.io to communicate with the server from the client-side
+* (3 points) Perform client side form validation using custom JavaScript or JavaScript library
+    * I'm going to validate the plays before they get sent to the server to make sure that they follow the rules
 
-* (5 points) Integrate user authentication
-    * I'm going to be using passport for user authentication
-    * And account has been made for testing; I'll email you the password
-    * see <code>cs.nyu.edu/~jversoza/ait-final/register</code> for register page
-    * see <code>cs.nyu.edu/~jversoza/ait-final/login</code> for login page
-* (4 points) Perform client side form validation using a JavaScript library
-    * see <code>cs.nyu.edu/~jversoza/ait-final/my-form</code>
-    * if you put in a number that's greater than 5, an error message will appear in the dom
-* (5 points) vue.js
-    * used vue.js as the frontend framework; it's a challenging library to learn, so I've assigned it 5 points
+10 points total out of 8 required points
 
-10 points total out of 8 required points (___TODO__: addtional points will __not__ count for extra credit_)
-
-
-## [Link to Initial Main Project File](app.js) 
-
-(___TODO__: create a skeleton Express application with a package.json, app.js, views folder, etc. ... and link to your initial app.js_)
+## [Link to Initial Main Project File](index.js) 
 
 ## Annotations / References Used
 
-(___TODO__: list any tutorials/references/etc. that you've based your code off of_)
-
-1. [passport.js authentication docs](http://passportjs.org/docs) - (add link to source code that was based on this)
-2. [tutorial on vue.js](https://vuejs.org/v2/guide/) - (add link to source code that was based on this)
-
+1. [basic socket.io chat application](https://socket.io/get-started/chat/) - (index.js)

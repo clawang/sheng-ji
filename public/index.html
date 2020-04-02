@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Socket.IO chat</title>
+  <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+  <div id="start-page">
+    <div id="login">
+      <h1>What's your username?</h1>
+      <form id="create-user" action="">
+        <input id="username" autocomplete="off" /><button>Submit</button>
+      </form>
+    </div>
+    <div id="team">
+      <h1 id="team-header"></h1>
+      <div id="team-container">
+        <form id="create-team" action="">
+          <input type="text" id="team-name" /><button>Create Team</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div id="pop-up">
+    <p id="pop-up-close"><a href="#">X</a></p>
+    <div id="pop-up-inner"></div>
+  </div>
+  <div id="chat-page">
+    <div class="legend">
+      <p>Trump Suit: <span id="trump-suit"></span></p>
+      <p>Trump Rank: <span id="trump-rank"></span></p>
+      <p>Points: <span id="points">0</span></p>
+    </div>
+    <div class="game-space">
+      <div class="player-3">
+        <h2>Player 3</h2>
+        <div id="player-3-cards">
+        </div>
+      </div>
+      <div class="player-4">
+        <h2>Player 4</h2>
+        <div id="player-4-cards">
+        </div>
+      </div>
+      <div class="center">
+        <button id="start-game">Start Game</button>
+      </div>
+      <div class="player-2">
+        <h2>Player 2</h2>
+        <div id="player-2-cards">
+        </div>
+      </div>
+      <div class="play">
+        <div class="play-hand">
+          <h2>My last play</h2>
+          <div class="play-hand-cards"></div>
+        </div>
+          <button id="view-plays">View Past Plays</button>
+        </div>
+      <div class="my-player">
+        <p id="message"></p>
+        <div class="hand">
+          <h2>My hand</h2>
+          <form id="hand-form" action="">
+            <div class="hand-cards"></div>
+            <button id="hand-submit" disabled>Confirm Play</button>
+          </form>
+        </div>
+        <div id="my-player-side">
+          
+        </div>
+      </div>
+    </div>
+    <aside id="chat">
+      <div id="current-users">
+        <h2>Teams</h2>
+        <ul id="all-users"></ul>
+      </div>
+      <ul id="messages"></ul>
+      <form id="chatbox" action="">
+        <input id="m" autocomplete="off" /><button>Send</button>
+      </form>
+    </aside>
+  </div>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

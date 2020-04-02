@@ -1,0 +1,382 @@
+{
+  "fullDeck":  [
+  {
+    "name": "2 of spades",
+    "suit": "spades",
+    "value": 2,
+    "display": "2",
+    "points": 0
+  },
+  {
+    "name": "3 of spades",
+    "suit": "spades",
+    "value": 3,
+    "display": "3",
+    "points": 0
+  },
+  {
+
+    "name": "4 of spades",
+    "suit": "spades",
+    "value": 4,
+    "display": "4",
+    "points": 0
+  },
+  {
+    "name": "5 of spades",
+    "suit": "spades",
+    "value": 5,
+    "display": "5",
+    "points": 5
+  },
+  {
+    "name": "6 of spades",
+    "suit": "spades",
+    "value": 6,
+    "display": "6",
+    "points": 0
+  },
+  {
+    "name": "7 of spades",
+    "suit": "spades",
+    "value": 7,
+    "display": "7",
+    "points": 0
+  },
+  {
+    "name": "8 of spades",
+    "suit": "spades",
+    "value": 8,
+    "display": "8",
+    "points": 0
+  },
+  {
+    "name": "9 of spades",
+    "suit": "spades",
+    "value": 9,
+    "display": "9",
+    "points": 0
+  },
+  {
+    "name": "10 of spades",
+    "suit": "spades",
+    "value": 10,
+    "display": "10",
+    "points": 10
+  },
+  {
+    "name": "jack of spades",
+    "suit": "spades",
+    "value": 11,
+    "display": "J",
+    "points": 0
+  },
+  {
+    "name": "queen of spades",
+    "suit": "spades",
+    "value": 12,
+    "display": "Q",
+    "points": 0
+  },
+  {
+    "name": "king of spades",
+    "suit": "spades",
+    "value": 13,
+    "display": "K",
+    "points": 10
+  },
+  {
+    "name": "ace of spades",
+    "suit": "spades",
+    "value": 14,
+    "display": "A",
+    "points": 10
+  },
+  {
+    "name": "2 of hearts",
+    "suit": "hearts",
+    "value": 2,
+    "display": "2",
+    "points": 0
+  },
+  {
+    "name": "3 of hearts",
+    "suit": "hearts",
+    "value": 3,
+    "display": "3",
+    "points": 0
+  },
+  {
+    "name": "4 of hearts",
+    "suit": "hearts",
+    "value": 4,
+    "display": "4",
+    "points": 0
+  },
+  {
+    "name": "5 of hearts",
+    "suit": "hearts",
+    "value": 5,
+    "display": "5",
+    "points": 5
+  },
+  {
+    "name": "6 of hearts",
+    "suit": "hearts",
+    "value": 6,
+    "display": "6",
+    "points": 0
+  },
+  {
+    "name": "7 of hearts",
+    "suit": "hearts",
+    "value": 7,
+    "display": "7",
+    "points": 0
+  },
+  {
+    "name": "8 of hearts",
+    "suit": "hearts",
+    "value": 8,
+    "display": "8",
+    "points": 0
+  },
+  {
+    "name": "9 of hearts",
+    "suit": "hearts",
+    "value": 9,
+    "display": "9",
+    "points": 0
+  },
+  {
+    "name": "10 of hearts",
+    "suit": "hearts",
+    "value": 10,
+    "display": "10",
+    "points": 10
+  },
+  {
+    "name": "jack of hearts",
+    "suit": "hearts",
+    "value": 11,
+    "display": "J",
+    "points": 0
+  },
+  {
+    "name": "queen of hearts",
+    "suit": "hearts",
+    "value": 12,
+    "display": "Q",
+    "points": 0
+  },
+  {
+    "name": "king of hearts",
+    "suit": "hearts",
+    "value": 13,
+    "display": "K",
+    "points": 10
+  },
+  {
+    "name": "ace of hearts",
+    "suit": "hearts",
+    "value": 14,
+    "display": "A",
+    "points": 10
+  },
+  {
+    "name": "2 of clubs",
+    "suit": "clubs",
+    "value": 2,
+    "display": "2",
+    "points": 0
+  },
+  {
+    "name": "3 of clubs",
+    "suit": "clubs",
+    "value": 3,
+    "display": "3",
+    "points": 0
+  },
+  {
+    "name": "4 of clubs",
+    "suit": "clubs",
+    "value": 4,
+    "display": "4",
+    "points": 0
+  },
+  {
+    "name": "5 of clubs",
+    "suit": "clubs",
+    "value": 5,
+    "display": "5",
+    "points": 5
+  },
+  {
+    "name": "6 of clubs",
+    "suit": "clubs",
+    "value": 6,
+    "display": "6",
+    "points": 0
+  },
+  {
+    "name": "7 of clubs",
+    "suit": "clubs",
+    "value": 7,
+    "display": "7",
+    "points": 0
+  },
+  {
+    "name": "8 of clubs",
+    "suit": "clubs",
+    "value": 8,
+    "display": "8",
+    "points": 0
+  },
+  {
+    "name": "9 of clubs",
+    "suit": "clubs",
+    "value": 9,
+    "display": "9",
+    "points": 0
+  },
+  {
+    "name": "10 of clubs",
+    "suit": "clubs",
+    "value": 10,
+    "display": "10",
+    "points": 10
+  },
+  {
+    "name": "jack of clubs",
+    "suit": "clubs",
+    "value": 11,
+    "display": "J",
+    "points": 0
+  },
+  {
+    "name": "queen of clubs",
+    "suit": "clubs",
+    "value": 12,
+    "display": "Q",
+    "points": 0
+  },
+  {
+    "name": "king of clubs",
+    "suit": "clubs",
+    "value": 13,
+    "display": "K",
+    "points": 10
+  },
+  {
+    "name": "ace of clubs",
+    "suit": "clubs",
+    "value": 14,
+    "display": "A",
+    "points": 10
+  },
+  {
+    "name": "2 of diamonds",
+    "suit": "diamonds",
+    "value": 2,
+    "display": "2",
+    "points": 0
+  },
+  {
+    "name": "3 of diamonds",
+    "suit": "diamonds",
+    "value": 3,
+    "display": "3",
+    "points": 0
+  },
+  {
+    "name": "4 of diamonds",
+    "suit": "diamonds",
+    "value": 4,
+    "display": "4",
+    "points": 0
+  },
+  {
+    "name": "5 of diamonds",
+    "suit": "diamonds",
+    "value": 5,
+    "display": "5",
+    "points": 5
+  },
+  {
+    "name": "6 of diamonds",
+    "suit": "diamonds",
+    "value": 6,
+    "display": "6",
+    "points": 0
+  },
+  {
+    "name": "7 of diamonds",
+    "suit": "diamonds",
+    "value": 7,
+    "display": "7",
+    "points": 0
+  },
+  {
+    "name": "8 of diamonds",
+    "suit": "diamonds",
+    "value": 8,
+    "display": "8",
+    "points": 0
+  },
+  {
+    "name": "9 of diamonds",
+    "suit": "diamonds",
+    "value": 9,
+    "display": "9",
+    "points": 0
+  },
+  {
+    "name": "10 of diamonds",
+    "suit": "diamonds",
+    "value": 10,
+    "display": "10",
+    "points": 10
+  },
+  {
+    "name": "jack of diamonds",
+    "suit": "diamonds",
+    "value": 11,
+    "display": "J",
+    "points": 0
+  },
+  {
+    "name": "queen of diamonds",
+    "suit": "diamonds",
+    "value": 12,
+    "display": "Q",
+    "points": 0
+  },
+  {
+    "name": "king of diamonds",
+    "suit": "diamonds",
+    "value": 13,
+    "display": "K",
+    "points": 10
+  },
+  {
+    "name": "ace of diamonds",
+    "suit": "diamonds",
+    "value": 14,
+    "display": "A",
+    "points": 10
+  },
+  {
+    "name": "small joker",
+    "suit": "trump",
+    "value": 100,
+    "display": "JOKER",
+    "points": 0
+  },
+  {
+    "name": "big joker",
+    "suit": "trump",
+    "value": 101,
+    "display": "JOKER",
+    "points": 0
+  }
+]}
