@@ -16,12 +16,34 @@ let fullDeck = [];
 $(function () {
   var socket = io();
 
+  $( document ).ready(function() {
+    console.log('page load');
+  });
+
   $('#create-user').submit(function(e){
     e.preventDefault(); // prevents page reloading
-    socket.emit('add user', $('#username').val());
-    $('#username').val('');
-    $('#start-page').fadeOut();
+    socket.emit('add user', {username: $('#create-user > #username').val(), password: $('#create-user > #password').val()});
+    // $('#start-page').fadeOut();
     return false;
+  });
+
+  $('#login-user').submit(function(e){
+    e.preventDefault(); // prevents page reloading
+    socket.emit('login', {username: $('#login-user > #username').val(), password: $('#login-user > #password').val()});
+    // $('#start-page').fadeOut();
+    return false;
+  });
+
+  $('#login-link').click(function(e) {
+    e.preventDefault();
+    $('#registration').fadeOut();
+    $('#login').fadeIn();
+  });
+
+  $('#register-link').click(function(e) {
+    e.preventDefault();
+    $('#login').fadeOut();
+    $('#registration').fadeIn();
   });
 
   $('#create-team').submit(function(e) {
@@ -84,6 +106,14 @@ $(function () {
     return false;
   });
 
+  socket.on('registration error', function() {
+    $('#registration-error').text('That username is taken!');
+  });
+
+  socket.on('login error', function(msg) {
+    $('#login-error').text(msg);
+  });
+
   socket.on('join team', function(teams) {
     $('#team').fadeIn();
     if(teams.length < 1) {
@@ -134,6 +164,7 @@ $(function () {
   });
 
   socket.on('setup player', function(data) {
+    $('#start-page').fadeOut();
     $('.hand-cards').html(cardsToString(data.hand, 'checkbox'));
     currentHand = data.hand;
     playerId = data.id;

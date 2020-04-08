@@ -40,16 +40,36 @@ h2 {text-transform: uppercase; font-size: 12px; margin-bottom: 5px;}
 
 #all-users li {padding: 5px;list-style-type: none;}
 
-#login, #team {
-	width: 80%; 
+#login, #registration, #team {
+	width: 300px; 
 	margin: 200px auto; 
 	text-align: center;
+}
+
+#login {
+	display:none;
+}
+
+.error-message {
+	margin: 8px 0;
+	color: red;
+}
+
+#start-page form {
+	margin: 20px 0;
+	text-align: left;
+}
+
+#start-page label {
+	text-transform: uppercase;
+	font-size: 10px;
+	color:white;
 }
 
 #start-page input {
 	padding: 10px;
 	width: 300px;
-	margin: 15px;
+	margin: 15px 0;
 }
 
 #start-page button {
@@ -85,6 +105,7 @@ h2 {text-transform: uppercase; font-size: 12px; margin-bottom: 5px;}
 	display: none;
 	box-shadow: 1px 1px 12px #ccc;
 	padding: 25px;
+	overflow: scroll;
 }
 
 #pop-up-inner {
@@ -95,6 +116,17 @@ h2 {text-transform: uppercase; font-size: 12px; margin-bottom: 5px;}
 	position: absolute;
 	top: 10px;
 	right: 10px;
+}
+
+#pop-up-close a {
+	text-decoration: none;
+	color: black;
+	font-size: 20px;
+}
+
+.round {
+	padding: 10px;
+	border-bottom: 1px solid #eee;
 }
 
 .game-space {

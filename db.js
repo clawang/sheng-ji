@@ -17,7 +17,7 @@ const Round = new mongoose.Schema({
 	round_number: {type: Number, required: true},
 	started: {type: Number, required: true},
 	suit: {type: String, required: true},
-	cards: {type: Array, required: true},,
+	cards: {type: Array, required: true},
 	points: {type: Number, required: true},
 	winner: {type: Number, required: true} //id of the winner
 });
@@ -53,7 +53,7 @@ if (process.env.NODE_ENV === 'PRODUCTION') {
  dbconf = conf.dbconf;
 } else {
  // if we're not in PRODUCTION mode, then use
- dbconf = 'mongodb://localhost/hw06';
+ dbconf = 'mongodb://localhost/finalProject';
 }
 
 mongoose.connect(dbconf);

@@ -1,16 +1,34 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Socket.IO chat</title>
+  <title>Sheng Ji</title>
   <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
   <div id="start-page">
-    <div id="login">
-      <h1>What's your username?</h1>
-      <form id="create-user" action="">
-        <input id="username" autocomplete="off" /><button>Submit</button>
+    <div id="registration">
+      <h1>Create an Account</h1>
+      <form id="create-user">
+        <label>Username</label><br/>
+        <input id="username" name="username" autocomplete="off" type="text"/><br/>
+        <label>Password</label><br/>
+        <input id="password" name="password" autocomplete="off" type="text"/><br/>
+        <input type="submit" value="Submit">
       </form>
+      <p>Already have an account? <a href="#" id="login-link">Login</a></p>
+      <p id="registration-error" class="error-message"></p>
+    </div>
+    <div id="login">
+      <h1>Log In</h1>
+      <form id="login-user">
+        <label>Username</label><br/>
+        <input id="username" name="username" autocomplete="off" type="text"/><br/>
+        <label>Password</label><br/>
+        <input id="password" name="password" autocomplete="off" type="text"/><br/>
+        <input type="submit" value="Submit">
+      </form>
+      <p>Don't have an account? <a href="#" id="register-link">Register</a></p>
+      <p id="login-error" class="error-message"></p>
     </div>
     <div id="team">
       <h1 id="team-header"></h1>
