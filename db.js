@@ -3,7 +3,14 @@ const mongoose = require('mongoose');
 // my schema goes here!
 const User = new mongoose.Schema({
 	username: {type: String, required: true},
-	password: {type: String, required: true}
+	password: {type: String, required: true},
+	points: {type: Number}
+});
+
+const Play = new mongoose.Schema({
+	username: {type: String, required: true},
+	round: {type: Number, required: true},
+	cards: {type: Array, required: true}
 });
 
 const Team = new mongoose.Schema({
@@ -24,18 +31,20 @@ const Round = new mongoose.Schema({
 
 const Game = new mongoose.Schema({
 	rounds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Round' }],
-	teams: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Team' }],
+	teams: {type: Array, required: true},
 	points: {type: Number, required: true},
-	turn: {type: Number, required: true}, //id of the user whose turn it is
-	round_index: {type: Number, required: true} //number of the round in progress
+	trumpSuit: {type: String, required: true},
+	trumpValue: {type: String, required: true},
+	winner: {type: Number, required: true}
 }, {
   	_id: true
 });
 
 mongoose.model('User', User);
+mongoose.model('Play', Play);
 mongoose.model('Team', Team);
 mongoose.model('Round', Round);
-mongoose.model('Game', Game);
+mongoose.model('Game', Game, 'games');
 
 // is the environment variable, NODE_ENV, set to PRODUCTION? 
 let dbconf;

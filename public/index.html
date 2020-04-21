@@ -51,20 +51,22 @@
     </div>
     <div class="game-space">
       <div class="player-3">
-        <h2>Player 3</h2>
+        <h2></h2>
         <div id="player-3-cards">
         </div>
       </div>
       <div class="player-4">
-        <h2>Player 4</h2>
+        <h2></h2>
         <div id="player-4-cards">
         </div>
       </div>
       <div class="center">
+        <p id="center-msg"></p>
         <button id="start-game">Start Game</button>
+        <button id="restart-game">Start Next Game</button>
       </div>
       <div class="player-2">
-        <h2>Player 2</h2>
+        <h2></h2>
         <div id="player-2-cards">
         </div>
       </div>
@@ -85,16 +87,19 @@
           </form>
         </div>
         <div id="my-player-side">
-          
+          <h3 id="my-username">Username</h3>
+          <p>My Score: <span id="my-score"></span></p>
         </div>
       </div>
     </div>
     <aside id="chat">
       <div id="current-users">
-        <h2>Teams</h2>
+        <h2 id="current-users-head">Active Users</h2>
         <ul id="all-users"></ul>
       </div>
-      <ul id="messages"></ul>
+      <div id="messages-container">
+        <ul id="messages"></ul>
+      </div>
       <form id="chatbox" action="">
         <input id="m" autocomplete="off" /><button>Send</button>
       </form>

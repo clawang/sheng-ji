@@ -1,11 +1,12 @@
-const suitSrc = {
-  spades: '/img/spades.png',
-  hearts: '/img/hearts.png',
-  clubs: '/img/clubs.png',
-  diamonds: '/img/diamonds.png'
-}
+// const suitSrc = {
+//   spades: '/img/spades.png',
+//   hearts: '/img/hearts.png',
+//   clubs: '/img/clubs.png',
+//   diamonds: '/img/diamonds.png'
+// }
 
 const playerObjects = [$('.play-hand-cards'), $('#player-2-cards'), $('#player-3-cards'), $('#player-4-cards')];
+const playerNames = [$('div.player-2 > h2'), $('div.player-3 > h2'), $('div.player-4 > h2')]
 
 let playerId;
 let currentHand;
@@ -17,20 +18,18 @@ $(function () {
   var socket = io();
 
   $( document ).ready(function() {
-    console.log('page load');
+    // console.log('page load');
   });
 
   $('#create-user').submit(function(e){
     e.preventDefault(); // prevents page reloading
     socket.emit('add user', {username: $('#create-user > #username').val(), password: $('#create-user > #password').val()});
-    // $('#start-page').fadeOut();
     return false;
   });
 
   $('#login-user').submit(function(e){
     e.preventDefault(); // prevents page reloading
     socket.emit('login', {username: $('#login-user > #username').val(), password: $('#login-user > #password').val()});
-    // $('#start-page').fadeOut();
     return false;
   });
 
@@ -61,6 +60,8 @@ $(function () {
 
   $('#start-game').click(function(e){
     e.preventDefault(); // prevents page reloading
+    $('#center-msg').html('Waiting...');
+    $('#start-game').fadeOut();
     socket.emit('start game', {});
     return false;
   });
@@ -71,15 +72,18 @@ $(function () {
     const result = [];
     for(let i = 0; i < arr.length; i++) {
       result[i] = arr[i].value;
+      console.log(arr[i].value);
     }
     if(result.length > 1) {
         $('#message').html("You can only play one card!");
-    } else {
+    } else if(result.length < 1) {
+        $('#message').html("You didn't select a card!");
+    }else {
       const suit = getSuit(result[0]);
       if(suit === currentSuit || !checkForSuit(currentHand, currentSuit)) { //can only play card if it follows rules
         $('#hand-submit').prop('disabled', true);
         $('#message').html('');
-        socket.emit('submit hand', result);
+        socket.emit('submit hand', {cards: result, id: playerId});
       } else {
         $('#message').html("You can't play that card!");
       }
@@ -89,7 +93,7 @@ $(function () {
 
   $('#view-plays').click(function(e){
     e.preventDefault(); // prevents page reloading
-    socket.emit('get plays', {id: playerId});
+    socket.emit('get plays', playerId);
     return false;
   });
 
@@ -103,6 +107,19 @@ $(function () {
     e.preventDefault(); // prevents page reloading
     socket.emit('chat message', $('#m').val());
     $('#m').val('');
+    return false;
+  });
+
+  $('#restart-game').click(function(e){
+    e.preventDefault(); // prevents page reloading
+    $('#center-msg').html('');
+    $('#restart-game').fadeOut();
+    $('#center-msg').html('Waiting...');
+    for(let i = 0; i < 4; i++) {
+      playerObjects[i].html('');
+    }
+    $('#message').html('');
+    socket.emit('restart game', {});
     return false;
   });
 
@@ -133,9 +150,20 @@ $(function () {
   socket.on('setup game', function(tr){
     $('#trump-suit').html(tr.trumpSuit);
     $('#trump-rank').html(tr.trumpValue);
+    $('#points').html(tr.points);
+    $('#center-msg').html('');
     $('#start-game').fadeOut();
     fullDeck = tr.deck;
-    $('#all-users').html('<li>Team 1: '+tr.users[0]+' & '+tr.users[2]+'</li><li>Team 2: '+tr.users[1]+' & '+tr.users[3]+'</li>');
+    $('#current-users-head').html('Teams');
+    $('#all-users').html('<li>Declarers: '+tr.teams[tr.declarers].usernames[0] + ' & ' + tr.teams[tr.declarers].usernames[1]+'</li><li>Opponents: '+tr.teams[(tr.declarers+1)%2].usernames[0]+' & '+tr.teams[(tr.declarers+1)%2].usernames[1]+'</li>');
+    for(let i = 0; i < 4; i++) {
+      const position = (i - playerId + 3) % 4;
+      console.log(position);
+      console.log(tr.users[i]);
+      if(position !== 3) {
+        playerNames[position].html(tr.users[i]);
+      }
+    }
   });
 
   socket.on('game message', function(msg){
@@ -165,12 +193,19 @@ $(function () {
 
   socket.on('setup player', function(data) {
     $('#start-page').fadeOut();
-    $('.hand-cards').html(cardsToString(data.hand, 'checkbox'));
-    currentHand = data.hand;
+    $('#my-username').html(data.username);
+    $('#my-score').html(data.points);
     playerId = data.id;
   });
 
+  socket.on('resetup player', function(data) {
+    $('#start-game').css('display','none');
+    $('.hand-cards').html(cardsToString(data.hand, 'checkbox'));
+    currentHand = data.hand;
+  });
+
   socket.on('display plays', function(plays){
+    console.log(plays);
     let str = '';
     plays.forEach(function(round) {
       str += '<div><h2>Round '+(round.index+1)+'</h2><div>'+cardsToString(round.cards, 'div')+'</div>';
@@ -186,15 +221,15 @@ $(function () {
   });
 
   socket.on('hand played', function(hand) {
-    let msg = hand.username + ' played ';
-    const cardsStr = hand.cards.map(element => element.name);
-    msg = msg.concat(cardsStr.shift());
-    if(cardsStr.length > 0) {
-      cardsStr.forEach(element => msg = msg.concat(' and ' + element));
-    }
-    $('#messages').append($('<li class="hand-msg">').text(msg));
     const position = (hand.id - playerId + 4) % 4;
     playerObjects[position].html(cardsToString(hand.cards, 'div'));
+    if(hand.played < 1) {
+      for(let i = 0; i < 4; i++) {
+        if(i !== position) {
+          playerObjects[i].html('');
+        }
+      }
+    }
   });
 
   socket.on('your turn', function(data) {
@@ -213,13 +248,30 @@ $(function () {
   });
 
   socket.on('user left', function(exit){
-    const str = getList(exit.users);
-    $('#all-users').html(str);
+    if(exit.state === 'unstarted') {
+      const str = getList(exit.users);
+      $('#all-users').html(str);
+    }
     $('#messages').append($('<li class="disconnection-msg">').text(exit.username + ' has left the chat'));
   });
 
   socket.on('end game', function(game){
-    $('.center').html(game.msg);
+    $('#center-msg').html(game.msg);
+    $('#restart-game').fadeIn();
+  });
+
+  socket.on('update score', function(pts){
+    console.log(pts);
+    $('#my-score').html(pts);
+  });
+
+  socket.on('pause game', function(name) {
+    $('#hand-submit').prop('disabled', true);
+    $('#center-msg').html(name+' left. Game paused.');
+  });
+
+  socket.on('unpause game', function(name) {
+    $('#center-msg').html('');
   });
 
 });
@@ -247,23 +299,6 @@ function cardsToString(arr, type) {
   }
   return str;
 }
-
-// function displayCards(arr) {
-//   const arrMapped = arr.map(function(element) {
-//     if(element.value === 100) {
-//       return '<div class="card-container"><p class="card-number joker">'+'J'+'<br/>'+'O'+'<br/>'+'K'+'<br/>'+'E'+'<br/>'+'R'+'</p></div>';
-//     } else if(element.value === 101) {
-//       return '<div class="card-container"><p class="card-number joker" style="color: #a31919">'+'J'+'<br/>'+'O'+'<br/>'+'K'+'<br/>'+'E'+'<br/>'+'R'+'</p></div>';
-//     } else {
-//       return '<div class="card-container"><p class="card-number">'+element.display+'</p><img class="card-suit" src="'+element.img+'"></div>';
-//     }
-//   });
-//   let str = '';
-//   for(let i = 0; i < arrMapped.length; i++) {
-//     str += arrMapped[i];
-//   }
-//   return str;
-// }
 
 function cardsToDiv(element) {
   if(element.value === 100) {

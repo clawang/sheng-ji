@@ -17,6 +17,10 @@ h2 {text-transform: uppercase; font-size: 12px; margin-bottom: 5px;}
 
 #chatbox button { width: 50px; background: rgb(130, 224, 255); border: none; padding: 10px; }
 
+#messages-container {
+	overflow: scroll;
+}
+
 #messages { list-style-type: none; margin: 0; padding: 0; }
 
 #messages li { padding: 5px 10px; border-bottom: 1px solid black; }
@@ -38,6 +42,10 @@ h2 {text-transform: uppercase; font-size: 12px; margin-bottom: 5px;}
 	padding: 10px;
 }
 
+#restart-game {
+	display: none;
+}
+
 #all-users li {padding: 5px;list-style-type: none;}
 
 #login, #registration, #team {
@@ -46,7 +54,7 @@ h2 {text-transform: uppercase; font-size: 12px; margin-bottom: 5px;}
 	text-align: center;
 }
 
-#login {
+#registration {
 	display:none;
 }
 
