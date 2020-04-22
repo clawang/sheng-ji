@@ -46,6 +46,16 @@ $(function () {
     $('#registration').fadeIn();
   });
 
+  $('#join-player').click(function(e) {
+    e.preventDefault();
+    socket.emit('user type', 'player');
+  });
+
+  $('#join-spectator').click(function(e) {
+    e.preventDefault();
+    socket.emit('user type', 'spectator');
+  });
+
   $('#create-team').submit(function(e) {
     e.preventDefault();
     socket.emit('add team', $('#team-name').val());
@@ -132,8 +142,18 @@ $(function () {
     $('#login-error').text(msg);
   });
 
+  socket.on('get user type', function(activeUsers) {
+    if(activeUsers > 4) {
+      $('#join-player').prop('disabled', true);
+    }
+    $('#start-page').fadeOut();
+  });
+
+  socket.on('setting error', function(msg) {
+    $('#setting-error').text(msg);
+  });
+
   socket.on('join team', function(teams) {
-    $('#team').fadeIn();
     if(teams.length < 1) {
       $('#team-header').text('Name your team');
       $('#create-team').fadeIn();
@@ -146,6 +166,38 @@ $(function () {
       let str2 = getList(teams[1]);
       $('#team').html('<h1>Which team would you like to join?</h1><div id="team-page"><div id="team-1">'+str1+'</div><div id="team-2">'+str2+'</div></div>');
     }
+  });
+
+  socket.on('user joined', function(sock){
+    $('#messages').append($('<li class="connection-msg">').text(sock.username + ' has joined the game'));
+    const str = getList(sock.users);
+    $('#all-users').html(str);
+  });
+
+  socket.on('spectator joined', function(sock){
+    $('#messages').append($('<li class="connection-msg">').text(sock + ' has joined as a spectator'));
+  });
+
+  socket.on('spectate mode', function(){
+    $('#game-settings').fadeOut();
+    $('.my-player').html('');
+    $('#view-plays').css('display','none');
+    $('#start-game').css('display','none');
+    playerType = 'spectator';
+  });
+
+  socket.on('setup player', function(data) {
+    $('#game-settings').fadeOut();
+    $('#my-username').html(data.username);
+    $('#my-score').html(data.points);
+    playerId = data.id;
+    playerType = 'player';
+  });
+
+  socket.on('resetup player', function(data) {
+    $('#start-game').css('display','none');
+    $('.hand-cards').html(cardsToString(data.hand, 'checkbox'));
+    currentHand = data.hand;
   });
 
   socket.on('setup game', function(tr){
@@ -165,7 +217,7 @@ $(function () {
           playerNames[position].html(tr.users[i]);
         }
       } else {
-        playerNames[i].html(tr.users[i]);
+        playerNames[(i + 3) % 4].html(tr.users[i]);
       }
     }
   });
@@ -178,43 +230,15 @@ $(function () {
     $('#messages').append($('<li>').text(msg.username + ": " + msg.body));
   });
 
-  socket.on('user joined', function(sock){
-    $('#messages').append($('<li class="connection-msg">').text(sock.username + ' has joined the game'));
-    const str = getList(sock.users);
-    $('#all-users').html(str);
-  });
-
-  socket.on('spectator joined', function(sock){
-    $('#messages').append($('<li class="connection-msg">').text(sock.username + ' has joined as a spectator'));
-  });
-
-  socket.on('spectate mode', function(){
-    $('#start-page').fadeOut();
-    $('.my-player').html('');
-    $('#view-plays').css('display','none');
-    $('#start-game').css('display','none');
-    playerType = 'spectator';
-  });
-
-  socket.on('setup player', function(data) {
-    $('#start-page').fadeOut();
-    $('#my-username').html(data.username);
-    $('#my-score').html(data.points);
-    playerId = data.id;
-    playerType = 'player';
-  });
-
-  socket.on('resetup player', function(data) {
-    $('#start-game').css('display','none');
-    $('.hand-cards').html(cardsToString(data.hand, 'checkbox'));
-    currentHand = data.hand;
-  });
-
   socket.on('display plays', function(plays){
     let str = '';
-    plays.forEach(function(round) {
-      str += '<div><h2>Round '+(round.index+1)+'</h2><div>'+cardsToString(round.cards, 'div')+'</div>';
-    });
+    if(plays.length > 0) {
+      plays.forEach(function(round) {
+        str += '<div><h2>Round '+(round.index+1)+'</h2><div>'+cardsToString(round.cards, 'div')+'</div>';
+      });
+    } else {
+      str += 'No plays were made yet!';
+    }
     $('#pop-up-inner').html(str);
     $('#pop-up').fadeIn();
   });
@@ -226,7 +250,12 @@ $(function () {
   });
 
   socket.on('hand played', function(hand) {
-    const position = (hand.id - playerId + 4) % 4;
+    let position;
+    if(playerType === 'player') {
+      position = (hand.id - playerId + 4) % 4;
+    } else {
+      position = hand.id;
+    }
     playerObjects[position].html(cardsToString(hand.cards, 'div'));
     if(hand.played < 1) {
       for(let i = 0; i < 4; i++) {

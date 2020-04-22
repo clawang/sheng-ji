@@ -117,6 +117,14 @@ function startServer(fullDeck) {
 			});
 		});
 
+		socket.on('user type', function(type) {
+			if(game.activeUsers >= 4 && type === 'player') {
+				socket.emit('setting error', 'There are already 4 active players.');
+			} else {
+				game.setUserType(socket, io, type);
+			}
+		});
+
 		socket.on('start game', function() {
 			if(!startCount.includes(socket.id)) {
 				startCount.push(socket.id);
@@ -129,10 +137,12 @@ function startServer(fullDeck) {
 			}
 		});
 		socket.on('chat message', function(msg){
-			io.emit('chat message', {
-				body: msg,
-				username: socket.username
-			});
+			if(msg !== '') {
+				io.emit('chat message', {
+					body: msg,
+					username: socket.username
+				});
+			}
 		});
 		socket.on('get plays', function(id){
 			let plays = [];

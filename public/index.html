@@ -30,14 +30,28 @@
       <p>Don't have an account? <a href="#" id="register-link">Register</a></p>
       <p id="login-error" class="error-message"></p>
     </div>
+  </div>
+  <div id="game-settings">
+    <div id="game-settings-player">
+      <h1>Would you like to join the game as a player or a spectator?</h1>
+      <button id='join-player'>Player</button>
+      <button id='join-spectator'>Spectator</button>
+      <p id="setting-error" class="error-message"></p>
+    </div>
     <div id="team">
       <h1 id="team-header"></h1>
       <div id="team-container">
-        <form id="create-team" action="">
-          <input type="text" id="team-name" /><button>Create Team</button>
-        </form>
+        <div>
+          <form id="create-team" action="">
+            <input type="text" id="team-name" /><button>Create Team</button>
+          </form>
+          <div id="team-1"></div>
+        </div>
+        <div>
+          <div id="team-2"></div>
+        </div>
       </div>
-    </div>
+    </div>  
   </div>
   <div id="pop-up">
     <p id="pop-up-close"><a href="#">X</a></p>

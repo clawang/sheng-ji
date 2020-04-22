@@ -8,12 +8,12 @@ class Game {
     this.users = [];
     this.teams = [];
     this.teams[0]= {
-      members: [0, 2],
+      members: [],
       usernames: [],
       score: 2
     }
     this.teams[1]= {
-      members: [1, 3],
+      members: [],
       usernames: [],
       score: 2
     }
@@ -134,17 +134,21 @@ class Game {
     socket.username = usrnm;
     socket.points = pts;
     socket.left = false;
-    if(this.activeUsers < 4) {
+    this.users.push(usrnm);
+    this.connections.push(socket);
+    socket.emit('get user type', this.activeUsers);
+  }
+
+  setUserType(socket, io, type) {
+    if(type === 'player') {
       socket.type = 'player';
-      this.broadcastAddUser(socket, io, pts);
+      this.activeUsers++;
+      console.log(this.activeUsers);
+      this.broadcastAddUser(socket, io, socket.points);
     } else {
       socket.type = 'spectator';
-      socket.emit('spectate mode', {});
-      io.emit('spectator joined', socket);
+      this.broadcastAddSpectator(socket, io);
     }
-    this.users.push(usrnm);
-    this.activeUsers++;
-    this.connections.push(socket);
   }
 
   broadcastAddUser(socket, io, pts) {
@@ -154,6 +158,14 @@ class Game {
       id: socket.id,
       users: this.users,
     });
+  }
+
+  broadcastAddSpectator(socket, io) {
+    socket.emit('spectate mode', {});
+    io.emit('spectator joined', socket.username);
+    if(this.gameState === 'playing') {
+      socket.emit('setup game', {trumpSuit: this.trumpSuit, trumpValue: this.trumpValue, points: this.points, deck: this.fullDeck, teams: this.teams, declarers: this.declarers, users: this.users});
+    }
   }
 
   setupPlayers() {
@@ -166,6 +178,7 @@ class Game {
         } else {
           tm = 1;
         }
+        this.teams[tm].members.push(ele.number);
         this.teams[tm].usernames.push(ele.username);
         this.playerIds.push(ele.id);
         this.players[ele.id] = ele;
@@ -188,10 +201,12 @@ class Game {
   }
 
   removeUser(socket) {
-    if(this.gameState === 'unstarted') {
+    if(this.gameState === 'unstarted' || socket.type === 'spectator') {
       this.users.splice(this.users.indexOf(socket.username), 1);
-      this.activeUsers--;
       this.connections.splice(this.connections.findIndex(ele => ele.username === socket.username), 1);
+      if(socket.type === 'player') {
+        this.activeUsers--;
+      }
     } else {
       if(this.players[socket.id] !== undefined) {
         this.players[socket.id].left = true;
@@ -205,9 +220,6 @@ class Game {
     this.gameState = 'playing';
     this.deck = this.fullDeck.slice();
     this.setupPlayers();
-    // this.playerIds.forEach(function(ele) {
-    //   this.startUser(this.players[ele]);
-    // }, this);
     this.trumpSuit = suits[Math.floor(Math.random() * 4)];
     this.adjustValues(this.fullDeck, this.trumpValue, this.trumpSuit);
     io.emit('setup game', {trumpSuit: this.trumpSuit, trumpValue: this.trumpValue, points: this.points, deck: this.fullDeck, teams: this.teams, declarers: this.declarers, users: this.users});
@@ -242,13 +254,15 @@ class Game {
 
   endRound(socket, io) {
     const winner = this.currentRound.getWinner();
+    this.turn = winner;
+    let msg = this.players[this.playerIds[this.turn]].username + ' won the round!';
     if(this.teams[this.opponents].members.includes(winner)) { //add points to total if opponents won
       this.points += this.currentRound.points;
+      msg += ' The opponents got ' + this.currentRound.points + ' points.';
     }
     this.rounds.push(this.currentRound);
-    this.turn = winner;
     io.emit('new round', this.points);
-    io.emit('game message', this.players[this.playerIds[this.turn]].username + ' won the round!');
+    io.emit('game message', msg);
     if(this.players[socket.id].hand.length > 0) { 
       this.startNewRound(winner); //set up next round if game not over
     }
