@@ -155,8 +155,8 @@ function startServer(fullDeck) {
 				}
 			});
 			game.submitHand(socket, io, result.cards);
-			if(plays.length >= 4) {
-			// if(game.checkGameOver(result.id)) {
+			// if(plays.length >= 4) {
+			if(game.checkGameOver(result.id)) {
 				endGame(game);
 				game.updateScores();
 			}
