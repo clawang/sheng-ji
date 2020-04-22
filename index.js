@@ -101,7 +101,6 @@ function startServer(fullDeck) {
 			  if (userDoc !== null) {
 			  	if(userDoc.password === user.password) {
 			  		const status = game.checkUsers(user.username, socket, io);
-			  		console.log(status);
 			  		if(status === 0) {
 			  			game.addUser(socket, io, user.username, userDoc.points);
 			  		} else if(status === 1) {
@@ -157,6 +156,9 @@ function startServer(fullDeck) {
 			game.submitHand(socket, io, result.cards);
 			// if(plays.length >= 4) {
 			if(game.checkGameOver(result.id)) {
+				for(let i = 0; i < 4; i++) {
+					game.players[game.playerIds[i]].hand = [];
+				}
 				endGame(game);
 				game.updateScores();
 			}

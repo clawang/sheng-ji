@@ -46,6 +46,15 @@ h2 {text-transform: uppercase; font-size: 12px; margin-bottom: 5px;}
 	display: none;
 }
 
+#all-users div {
+	padding: 5px;
+	text-align: center;
+}
+
+#all-users p {
+	font-weight: 800;
+}
+
 #all-users li {padding: 5px;list-style-type: none;}
 
 #login, #registration, #team {

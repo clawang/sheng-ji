@@ -90,7 +90,7 @@
     "suit": "spades",
     "value": 14,
     "display": "A",
-    "points": 10
+    "points": 0
   },
   {
     "name": "2 of hearts",
@@ -181,7 +181,7 @@
     "suit": "hearts",
     "value": 14,
     "display": "A",
-    "points": 10
+    "points": 0
   },
   {
     "name": "2 of clubs",
@@ -272,7 +272,7 @@
     "suit": "clubs",
     "value": 14,
     "display": "A",
-    "points": 10
+    "points": 0
   },
   {
     "name": "2 of diamonds",
@@ -363,7 +363,7 @@
     "suit": "diamonds",
     "value": 14,
     "display": "A",
-    "points": 10
+    "points": 0
   },
   {
     "name": "small joker",

@@ -6,13 +6,14 @@
 // }
 
 const playerObjects = [$('.play-hand-cards'), $('#player-2-cards'), $('#player-3-cards'), $('#player-4-cards')];
-const playerNames = [$('div.player-2 > h2'), $('div.player-3 > h2'), $('div.player-4 > h2')]
+const playerNames = [$('div.player-2 > h2'), $('div.player-3 > h2'), $('div.player-4 > h2'), $('div.play-hand > h2')]
 
 let playerId;
 let currentHand;
 let currentSuit;
 let starter = false;
 let fullDeck = [];
+let playerType = '';
 
 $(function () {
   var socket = io();
@@ -155,13 +156,16 @@ $(function () {
     $('#start-game').fadeOut();
     fullDeck = tr.deck;
     $('#current-users-head').html('Teams');
-    $('#all-users').html('<li>Declarers: '+tr.teams[tr.declarers].usernames[0] + ' & ' + tr.teams[tr.declarers].usernames[1]+'</li><li>Opponents: '+tr.teams[(tr.declarers+1)%2].usernames[0]+' & '+tr.teams[(tr.declarers+1)%2].usernames[1]+'</li>');
+    $('#all-users').css('display','flex');
+    $('#all-users').html('<div><p>Declarers: '+tr.teams[tr.declarers].score+'</p><li>'+tr.teams[tr.declarers].usernames[0] + '</li><li>' + tr.teams[tr.declarers].usernames[1]+'</li></div><div><p>Opponents: '+tr.teams[(tr.declarers+1)%2].score+'</p><li>'+tr.teams[(tr.declarers+1)%2].usernames[0]+'</li><li>'+tr.teams[(tr.declarers+1)%2].usernames[1]+'</li></div>');
     for(let i = 0; i < 4; i++) {
-      const position = (i - playerId + 3) % 4;
-      console.log(position);
-      console.log(tr.users[i]);
-      if(position !== 3) {
-        playerNames[position].html(tr.users[i]);
+      if(playerType === 'player') {
+        const position = (i - playerId + 3) % 4;
+        if(position !== 3) {
+          playerNames[position].html(tr.users[i]);
+        }
+      } else {
+        playerNames[i].html(tr.users[i]);
       }
     }
   });
@@ -182,13 +186,14 @@ $(function () {
 
   socket.on('spectator joined', function(sock){
     $('#messages').append($('<li class="connection-msg">').text(sock.username + ' has joined as a spectator'));
-    const str = getList(sock.users);
-    $('#all-users').html(str);
   });
 
   socket.on('spectate mode', function(){
-    $('.hand').html('');
-    $('.play').html('');
+    $('#start-page').fadeOut();
+    $('.my-player').html('');
+    $('#view-plays').css('display','none');
+    $('#start-game').css('display','none');
+    playerType = 'spectator';
   });
 
   socket.on('setup player', function(data) {
@@ -196,6 +201,7 @@ $(function () {
     $('#my-username').html(data.username);
     $('#my-score').html(data.points);
     playerId = data.id;
+    playerType = 'player';
   });
 
   socket.on('resetup player', function(data) {
@@ -205,7 +211,6 @@ $(function () {
   });
 
   socket.on('display plays', function(plays){
-    console.log(plays);
     let str = '';
     plays.forEach(function(round) {
       str += '<div><h2>Round '+(round.index+1)+'</h2><div>'+cardsToString(round.cards, 'div')+'</div>';
@@ -252,7 +257,7 @@ $(function () {
       const str = getList(exit.users);
       $('#all-users').html(str);
     }
-    $('#messages').append($('<li class="disconnection-msg">').text(exit.username + ' has left the chat'));
+    $('#messages').append($('<li class="disconnection-msg">').text(exit.username + ' has left the game'));
   });
 
   socket.on('end game', function(game){
@@ -323,12 +328,12 @@ function cardsToCheckbox(element) {
 function getSuit(value) {
   console.log(fullDeck);
   const card = fullDeck.find(ele => ele.index === parseInt(value));
-  return card.suit;
+  return card.adjSuit;
 }
 
 function checkForSuit(cards, suit) {
   for(let i = 0; i < cards.length; i++) {
-    if(cards[i].suit === suit) {
+    if(cards[i].adjSuit === suit) {
       return true;
     } 
   }
