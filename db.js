@@ -65,4 +65,4 @@ if (process.env.NODE_ENV === 'PRODUCTION') {
  dbconf = 'mongodb://localhost/finalProject';
 }
 
-mongoose.connect(dbconf);
+mongoose.connect(process.env.MONGODB_URI || dbconf);
