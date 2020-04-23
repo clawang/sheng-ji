@@ -11,12 +11,17 @@ html {
 body {
   font: 13px "Montserrat", sans-serif;
   height: 100vh;
+  overflow: hidden;
 }
 
 h2 {
   text-transform: uppercase;
   font-size: 12px;
   margin-bottom: 5px;
+}
+
+h4 {
+  font-size: 14px;
 }
 
 button {
@@ -207,8 +212,9 @@ button {
   position: relative;
   flex-grow: 1;
   background: white;
+  display: flex;
+  flex-direction: column;
 }
-
 #chat #current-users {
   background: #fefbf9;
 }
@@ -237,8 +243,6 @@ button {
 }
 
 #chatbox {
-  position: absolute;
-  bottom: 0;
   width: 100%;
 }
 #chatbox input {
@@ -258,6 +262,7 @@ button {
 }
 
 #messages-container {
+  height: 100%;
   overflow: scroll;
 }
 
@@ -279,9 +284,20 @@ button {
   background: #0b8b63;
 }
 
+.hand-msg {
+  color: #333;
+}
+
 .disconnection-msg {
   color: white;
   background: #e9764f;
+}
+
+.chat-msg:nth-of-type(2n + 1) {
+  background: #fefbf9;
+}
+.chat-msg:nth-of-type(2n) {
+  background: #e6e2e1;
 }
 
 .game-space {
@@ -327,6 +343,10 @@ button {
   text-align: center;
   width: 50%;
   padding: 40px;
+}
+
+#view-plays {
+  display: none;
 }
 
 .player-2, .player-4, .player-3 {

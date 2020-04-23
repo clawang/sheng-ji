@@ -20,12 +20,18 @@ html {
 body {
     font: 13px $default-font;
     height: 100vh;
+    overflow: hidden;
 }
 
 h2 {
     text-transform: uppercase;
     font-size: 12px;
     margin-bottom: 5px;
+}
+
+h4 {
+    font-size: 14px;
+    font-weight: 100;
 }
 
 button {
@@ -238,9 +244,9 @@ button {
     position: relative;
     flex-grow: 1;
     background: white;
-}
+    display: flex;
+    flex-direction: column;
 
-#chat {
     #current-users {
         background: #fefbf9;
     }
@@ -278,8 +284,6 @@ button {
 }
 
 #chatbox {
-    position: absolute;
-    bottom: 0;
     width: 100%;
     
     input {
@@ -301,6 +305,7 @@ button {
 }
 
 #messages-container {
+    height: 100%;
     overflow: scroll;
 }
 
@@ -326,12 +331,23 @@ button {
 
 .hand-msg {
     @extend %chat-message-shared;
+    color: #333;
 }
 
 .disconnection-msg {
     @extend %chat-message-shared;
     color: white;
     background: $red;
+}
+
+.chat-msg {
+    &:nth-of-type(2n + 1) {
+        background: #fefbf9;
+    }
+    
+    &:nth-of-type(2n) {
+        background: #e6e2e1;
+    }
 }
 
 .game-space {
@@ -380,6 +396,10 @@ button {
     text-align: center;
     width: 50%;
     padding: 40px;
+}
+
+#view-plays {
+    display: none;
 }
 
 %player-shared {

@@ -268,13 +268,14 @@ class Game {
     const winner = this.currentRound.getWinner();
     this.turn = winner;
     let msg = this.players[this.playerIds[this.turn]].username + ' won the round!';
+    let subtitle = '';
     if(this.teams[this.opponents].members.includes(winner)) { //add points to total if opponents won
       this.points += this.currentRound.points;
-      msg += ' The opponents got ' + this.currentRound.points + ' points.';
+      subtitle += ' The opponents got ' + this.currentRound.points + ' points.';
     }
     this.rounds.push(this.currentRound);
     io.emit('new round', this.points);
-    io.emit('game message', msg);
+    io.emit('game message', {user: this.players[this.playerIds[this.turn]].username, subtitle: subtitle, winner: winner});
     if(this.players[socket.id].hand.length > 0) { 
       this.startNewRound(winner); //set up next round if game not over
     }
@@ -298,9 +299,9 @@ class Game {
     let msg;
     
     if(this.points < 40) {
-      this.winner = 0;
+      this.winner = this.declarers;
     } else {
-      this.winner = 1;
+      this.winner = this.opponents;
     }
 
     const winner1 = this.players[this.playerIds[this.teams[this.winner].members[0]]];

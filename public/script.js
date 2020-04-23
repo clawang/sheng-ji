@@ -97,9 +97,9 @@ $(function () {
       console.log(arr[i].value);
     }
     if(result.length > 1) {
-        $('#center-msg').html("You can only play one card!");
+        $('#center-msg').html("<span class='red'>You can only play one card!<span>");
     } else if(result.length < 1) {
-        $('#center-msg').html("You didn't select a card!");
+        $('#center-msg').html("<span class='red'>You didn't select a card!</span>");
     }else {
       const suit = getSuit(result[0]);
       if(suit === currentSuit || !checkForSuit(currentHand, currentSuit)) { //can only play card if it follows rules
@@ -107,7 +107,7 @@ $(function () {
         $('#center-msg').html('');
         socket.emit('submit hand', {cards: result, id: playerId});
       } else {
-        $('#center-msg').html("You can't play that card!");
+        $('#center-msg').html("<span class='red'>You can't play that card!</span>");
       }
     }
     return false;
@@ -222,7 +222,7 @@ $(function () {
     $('#center-msg').html('');
     $('#start-game').fadeOut();
     fullDeck = tr.deck;
-    $('#current-users-head').css('display', 'none');
+    $('#view-plays').fadeIn();    
     $('#view-plays').prop('disabled', false);
     $('#all-users').css('display','flex');
     $('#all-users').html('<div><p>Declarers: '+tr.teams[tr.declarers].score+'</p><li>'+tr.teams[tr.declarers].usernames[0] + '</li><li>' + tr.teams[tr.declarers].usernames[1]+'</li></div><div><p>Opponents: '+tr.teams[(tr.declarers+1)%2].score+'</p><li>'+tr.teams[(tr.declarers+1)%2].usernames[0]+'</li><li>'+tr.teams[(tr.declarers+1)%2].usernames[1]+'</li></div>');
@@ -238,12 +238,19 @@ $(function () {
     }
   });
 
-  socket.on('game message', function(msg){
-    $('#messages').append($('<li class="hand-msg">').text(msg));
+  socket.on('game message', function(data){
+    // $('#messages').append($('<li class="hand-msg">').text(msg));
+    let name;
+    if(data.winner === playerId) {
+      name = 'You';
+    } else {
+      name = data.user;
+    }
+    $('#center-msg').html('<p>'+name+' won the round!</p><h4>'+data.subtitle+'</h4>');
   });
 
   socket.on('chat message', function(msg){
-    $('#messages').append($('<li>').text(msg.username + ": " + msg.body));
+    $('#messages').append($('<li class="chat-msg">').text(msg.username + ": " + msg.body));
   });
 
   socket.on('display plays', function(plays){
