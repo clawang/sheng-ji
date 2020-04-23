@@ -84,9 +84,13 @@ $(function () {
 
   $('#start-game').click(function(e){
     e.preventDefault(); // prevents page reloading
-    $('#center-msg').html('Waiting...');
-    $('#start-game').fadeOut();
-    socket.emit('start game', {trumpValue: $('#setTrumpValue').val(), trumpSuit: $('#setTrumpSuit').val()});
+    if(parseInt($('#setTrumpValue').val()) > 14 || parseInt($('#setTrumpValue').val()) < 2) {
+      $('#center-msg').html('<p class="red">The trump rank must be between 2 and 14.</p>');
+    } else {
+      $('#center-msg').html('Waiting...');
+      $('#start-game').fadeOut();
+      socket.emit('start game', {trumpValue: $('#setTrumpValue').val(), trumpSuit: $('#setTrumpSuit').val()});
+    }
     return false;
   });
 
