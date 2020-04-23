@@ -188,6 +188,8 @@ class Game {
   editSettings(set) {
     this.trumpValue = parseInt(set.trumpValue);
     this.trumpSuit = String(set.trumpSuit);
+    this.teams[0].score = this.trumpValue;
+    this.teams[1].score = this.trumpValue;
     this.set = true;
   }
 

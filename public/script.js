@@ -250,7 +250,7 @@ $(function () {
       $('#hand-submit').fadeIn();
     }
     $('#all-users').css('display','flex');
-    $('#all-users').html('<div><h2>Declarers – '+tr.teams[tr.declarers].score+'</h2><li>'+tr.teams[tr.declarers].usernames[0] + '</li><li>' + tr.teams[tr.declarers].usernames[1]+'</li></div><div><h2>Opponents – '+tr.teams[(tr.declarers+1)%2].score+'</h2><li>'+tr.teams[(tr.declarers+1)%2].usernames[0]+'</li><li>'+tr.teams[(tr.declarers+1)%2].usernames[1]+'</li></div>');
+    $('#all-users').html('<div><h2>Declarers – '+valueToDisplay[tr.teams[tr.declarers].score]+'</h2><li>'+tr.teams[tr.declarers].usernames[0] + '</li><li>' + tr.teams[tr.declarers].usernames[1]+'</li></div><div><h2>Opponents – '+valueToDisplay[tr.teams[(tr.declarers+1)%2].score]+'</h2><li>'+tr.teams[(tr.declarers+1)%2].usernames[0]+'</li><li>'+tr.teams[(tr.declarers+1)%2].usernames[1]+'</li></div>');
     for(let i = 0; i < 4; i++) {
       const position = (i - playerId + 3) % 4;
       if(playerType === 'player' && position !== 3) {
