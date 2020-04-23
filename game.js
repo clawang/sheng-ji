@@ -8,12 +8,12 @@ class Game {
     this.users = [];
     this.teams = [];
     this.teams[0]= {
-      members: [],
+      members: [0, 2],
       usernames: [],
       score: 2
     }
     this.teams[1]= {
-      members: [],
+      members: [1, 3],
       usernames: [],
       score: 2
     }
@@ -134,7 +134,7 @@ class Game {
     socket.username = usrnm;
     socket.points = pts;
     socket.left = false;
-    this.users.push(usrnm);
+    // this.users.push(usrnm);
     this.connections.push(socket);
     socket.emit('get user type', this.activeUsers);
   }
@@ -143,12 +143,22 @@ class Game {
     if(type === 'player') {
       socket.type = 'player';
       this.activeUsers++;
-      console.log(this.activeUsers);
-      this.broadcastAddUser(socket, io, socket.points);
+      socket.emit('join team', this.teams);      
     } else {
       socket.type = 'spectator';
       this.broadcastAddSpectator(socket, io);
     }
+  }
+
+  setTeam(socket, io, tm) {
+    if(this.teams[tm].usernames.length > 0) {
+      socket.number = tm + 2;
+    } else {
+      socket.number = tm;
+    }
+    socket.team = tm;
+    this.teams[tm].usernames.push(socket.username);
+    this.broadcastAddUser(socket, io, socket.points);
   }
 
   broadcastAddUser(socket, io, pts) {
@@ -172,17 +182,18 @@ class Game {
     let i = 0;
     this.connections.forEach(function(ele) {
       if(ele.type === 'player') {
-        let tm;
-        if(i % 2 === 0) {
-          tm = 0;
-        } else {
-          tm = 1;
-        }
-        this.teams[tm].members.push(ele.number);
-        this.teams[tm].usernames.push(ele.username);
-        this.playerIds.push(ele.id);
+        // let tm;
+        // if(i % 2 === 0) {
+        //   tm = 0;
+        // } else {
+        //   tm = 1;
+        // }
+        // this.teams[tm].members.push(ele.number);
+        // this.teams[tm].usernames.push(ele.username);
+        this.playerIds[ele.number] = ele.id;
+        this.users[ele.number] = ele.username;
         this.players[ele.id] = ele;
-        ele.number = this.playerIds.length - 1;
+        // ele.number = this.playerIds.length - 1;
         if(ele.number === this.turn) {
            ele.isTurn = true;
         } else {
@@ -203,6 +214,7 @@ class Game {
   removeUser(socket) {
     if(this.gameState === 'unstarted' || socket.type === 'spectator') {
       this.users.splice(this.users.indexOf(socket.username), 1);
+      this.teams[socket.team].usernames.splice(this.teams[socket.team].usernames.indexOf(socket.username), 1);
       this.connections.splice(this.connections.findIndex(ele => ele.username === socket.username), 1);
       if(socket.type === 'player') {
         this.activeUsers--;

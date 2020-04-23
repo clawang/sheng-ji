@@ -39,44 +39,64 @@
       <p id="setting-error" class="error-message"></p>
     </div>
     <div id="team">
-      <h1 id="team-header"></h1>
+      <h1 id="team-header">Which team would you like to join?</h1>
       <div id="team-container">
-        <div>
-          <form id="create-team" action="">
-            <input type="text" id="team-name" /><button>Create Team</button>
-          </form>
-          <div id="team-1"></div>
+        <div id="declarers">
+          <h2>Declarers</h2>
+          <div></div>
         </div>
-        <div>
-          <div id="team-2"></div>
+        <div id="opponents">
+          <h2>Opponents</h2>
+          <div></div>
         </div>
       </div>
+      <p id="team-error" class="error-message"></p>
     </div>  
   </div>
-  <div id="pop-up">
-    <p id="pop-up-close"><a href="#">X</a></p>
-    <div id="pop-up-inner"></div>
-  </div>
   <div id="chat-page">
-    <div class="legend">
-      <p>Trump Suit: <span id="trump-suit"></span></p>
-      <p>Trump Rank: <span id="trump-rank"></span></p>
-      <p>Points: <span id="points">0</span></p>
-    </div>
+    <div class="sidebar">
+      <div class="legend">
+        <div>
+          <h2>Trump Suit</h2>
+          <p id="trump-suit">spades</p>
+        </div>
+        <div>
+          <h2>Trump Rank</h2>
+          <p id="trump-rank">2</p>
+        </div>
+        <div>
+          <h2>Points</h2>
+          <p id="points">25</p>
+        </div>
+      </div>
+      <div id="my-player-stats">
+          <h3 id="my-username">Username</h3>
+          <p>My Score: <span id="my-score"></span></p>
+        </div>
+      </div>
     <div class="game-space">
+      <div id="pop-up">
+        <p id="pop-up-close"><a href="#">X</a></p>
+        <div id="pop-up-inner"></div>
+      </div>
+      <div id="header">
+        <p id="center-msg"></p>
+      </div>
+      <div class="space-1"></div>
       <div class="player-3">
         <h2></h2>
         <div id="player-3-cards">
         </div>
       </div>
+      <div class="space-1"></div>
       <div class="player-4">
         <h2></h2>
         <div id="player-4-cards">
         </div>
       </div>
       <div class="center">
-        <p id="center-msg"></p>
         <button id="start-game">Start Game</button>
+        <button id="view-plays" disabled>View Past Plays</button>
         <button id="restart-game">Start Next Game</button>
       </div>
       <div class="player-2">
@@ -84,25 +104,21 @@
         <div id="player-2-cards">
         </div>
       </div>
+      <div class="space-1"></div>
       <div class="play">
         <div class="play-hand">
           <h2>My last play</h2>
           <div class="play-hand-cards"></div>
         </div>
-          <button id="view-plays">View Past Plays</button>
-        </div>
+      </div>
+      <div class="space-1"></div>
       <div class="my-player">
-        <p id="message"></p>
+        <!-- <p id="message"></p> -->
         <div class="hand">
-          <h2>My hand</h2>
           <form id="hand-form" action="">
             <div class="hand-cards"></div>
             <button id="hand-submit" disabled>Confirm Play</button>
           </form>
-        </div>
-        <div id="my-player-side">
-          <h3 id="my-username">Username</h3>
-          <p>My Score: <span id="my-score"></span></p>
         </div>
       </div>
     </div>

@@ -19,6 +19,9 @@ $(function () {
   var socket = io();
 
   $( document ).ready(function() {
+    $('button').css('cursor', 'pointer');
+    $('#declarers').css('cursor', 'pointer');
+    $('#opponents').css('cursor', 'pointer');
     // console.log('page load');
   });
 
@@ -56,6 +59,14 @@ $(function () {
     socket.emit('user type', 'spectator');
   });
 
+  $('#declarers').click(function(e) {
+    socket.emit('set team', 0);
+  });
+
+  $('#opponents').click(function(e) {
+    socket.emit('set team', 1);
+  });
+
   $('#create-team').submit(function(e) {
     e.preventDefault();
     socket.emit('add team', $('#team-name').val());
@@ -86,17 +97,17 @@ $(function () {
       console.log(arr[i].value);
     }
     if(result.length > 1) {
-        $('#message').html("You can only play one card!");
+        $('#center-msg').html("You can only play one card!");
     } else if(result.length < 1) {
-        $('#message').html("You didn't select a card!");
+        $('#center-msg').html("You didn't select a card!");
     }else {
       const suit = getSuit(result[0]);
       if(suit === currentSuit || !checkForSuit(currentHand, currentSuit)) { //can only play card if it follows rules
         $('#hand-submit').prop('disabled', true);
-        $('#message').html('');
+        $('#center-msg').html('');
         socket.emit('submit hand', {cards: result, id: playerId});
       } else {
-        $('#message').html("You can't play that card!");
+        $('#center-msg').html("You can't play that card!");
       }
     }
     return false;
@@ -129,7 +140,6 @@ $(function () {
     for(let i = 0; i < 4; i++) {
       playerObjects[i].html('');
     }
-    $('#message').html('');
     socket.emit('restart game', {});
     return false;
   });
@@ -154,18 +164,22 @@ $(function () {
   });
 
   socket.on('join team', function(teams) {
-    if(teams.length < 1) {
-      $('#team-header').text('Name your team');
-      $('#create-team').fadeIn();
-    } else if(teams.length === 1) {
-      let str = getList(teams[0]);
-      $('#team-header').text('Would you like to join a team or create a new one?');
-      $('#team-container').html('<div id="team-1">'+str+'</div><button id="new-team-btn">Create Team</button>');
-    } else {
-      let str1 = getList(teams[0]);
-      let str2 = getList(teams[1]);
-      $('#team').html('<h1>Which team would you like to join?</h1><div id="team-page"><div id="team-1">'+str1+'</div><div id="team-2">'+str2+'</div></div>');
+    $('#game-settings-player').fadeOut();
+    const teamUsers = ['', ''];
+    for(let i = 0; i < 2; i++) {
+      if(teams[i].usernames.length > 0) {
+        teamUsers[i] = getList(teams[i].usernames);
+      } else {
+        teamUsers[i] = 'No players yet.';
+      }
     }
+    $('#declarers > div').html('<ul>' + teamUsers[0] + '</ul>');
+    $('#opponents > div').html('<ul>' + teamUsers[1] + '</ul>');
+    $('#team').fadeIn();
+  });
+
+  socket.on('team error', function(msg) {
+    $('#team-error').text(msg);
   });
 
   socket.on('user joined', function(sock){
@@ -195,6 +209,7 @@ $(function () {
   });
 
   socket.on('resetup player', function(data) {
+    $('#start-page').fadeOut();
     $('#start-game').css('display','none');
     $('.hand-cards').html(cardsToString(data.hand, 'checkbox'));
     currentHand = data.hand;
@@ -207,7 +222,8 @@ $(function () {
     $('#center-msg').html('');
     $('#start-game').fadeOut();
     fullDeck = tr.deck;
-    $('#current-users-head').html('Teams');
+    $('#current-users-head').css('display', 'none');
+    $('#view-plays').prop('disabled', false);
     $('#all-users').css('display','flex');
     $('#all-users').html('<div><p>Declarers: '+tr.teams[tr.declarers].score+'</p><li>'+tr.teams[tr.declarers].usernames[0] + '</li><li>' + tr.teams[tr.declarers].usernames[1]+'</li></div><div><p>Opponents: '+tr.teams[(tr.declarers+1)%2].score+'</p><li>'+tr.teams[(tr.declarers+1)%2].usernames[0]+'</li><li>'+tr.teams[(tr.declarers+1)%2].usernames[1]+'</li></div>');
     for(let i = 0; i < 4; i++) {
@@ -267,7 +283,7 @@ $(function () {
   });
 
   socket.on('your turn', function(data) {
-    $('#message').html("<p style='color:green'>It's your turn!</p>");
+    $('#center-msg').html("<p class='green'>It's your turn!</p>");
     $('#hand-submit').prop('disabled', false);
     currentSuit = data.suit;
     if(data.plays < 1) {

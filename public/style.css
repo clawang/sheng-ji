@@ -1,279 +1,420 @@
-* { 
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-body { 
-    font: 13px Helvetica, Arial; 
-    width: 1000px;
+html {
+  height: 100vh;
 }
 
-h2 {text-transform: uppercase; font-size: 12px; margin-bottom: 5px;}
-
-#chatbox { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
-
-#chatbox input { border: 0; padding: 10px; width: 190px;}
-
-#chatbox button { width: 50px; background: rgb(130, 224, 255); border: none; padding: 10px; }
-
-#messages-container {
-	overflow: scroll;
+body {
+  font: 13px "Montserrat", sans-serif;
+  height: 100vh;
 }
 
-#messages { list-style-type: none; margin: 0; padding: 0; }
+h2 {
+  text-transform: uppercase;
+  font-size: 12px;
+  margin-bottom: 5px;
+}
 
-#messages li { padding: 5px 10px; border-bottom: 1px solid black; }
-
-.connection-msg {font-size:10px; color: white; background: green; border-bottom: none !important;}
-
-.hand-msg {font-size:10px; border-bottom: none !important;}
-
-.disconnection-msg {font-size:10px; color: white; background: red; border-bottom: none !important;}
+button {
+  font-family: "Montserrat", sans-serif;
+}
 
 #start-page, #game-settings {
-	background: #000;
-	width: 100%; 
-	height: 100%;  
-	color: white; 
-	position: absolute;
+  background: #423643;
+  width: 100%;
+  height: 100%;
+  color: white;
+  position: absolute;
 }
-
-#start-page button, #game-settings button {
-	margin: 10px;
-	padding: 5px 10px;
-	background: white;
+#start-page button, #start-page input[type=submit], #game-settings button, #game-settings input[type=submit] {
+  margin: 10px 0;
+  padding: 10px;
+  background: #e9764f;
+  transition: 0.2s linear;
+  width: 100%;
+  border: none;
+  font-family: "Montserrat", sans-serif;
+  border-radius: 20px;
+  color: white;
+}
+#start-page button:hover, #start-page input[type=submit]:hover, #game-settings button:hover, #game-settings input[type=submit]:hover {
+  background: #222;
+}
+#start-page form, #game-settings form {
+  margin: 20px 0;
+  text-align: left;
+}
+#start-page label, #game-settings label {
+  text-transform: uppercase;
+  font-size: 10px;
+  color: white;
+  margin-bottom: -5px;
+}
+#start-page input[type=text], #game-settings input[type=text] {
+  padding: 10px;
+  width: 300px;
+  margin: 15px 0;
+}
+#start-page a, #game-settings a {
+  color: #ffc857;
+}
+#start-page a:visited, #game-settings a:visited {
+  color: #0b8b63;
+}
+#start-page a:hover, #game-settings a:hover {
+  color: #e9764f;
 }
 
 #start-page {
-	z-index: 50;
+  z-index: 50;
 }
 
 #game-settings {
-	z-index: 49;
+  z-index: 49;
 }
-
-#chat-page {width: 100%; height: 100%; position: absolute;}
-
-#chat {width: 250px; position: absolute; right: 0px; border-left: 2px solid black; border-right: 2px solid black; height: 100%;}
-
-#current-users {
-	background: #eee;
-	padding: 10px;
+#game-settings h1 {
+  margin-bottom: 15px;
 }
 
 #restart-game {
-	display: none;
+  display: none;
 }
 
-#all-users div {
-	padding: 5px;
-	text-align: center;
-}
-
-#all-users p {
-	font-weight: 800;
-}
-
-#all-users li {padding: 5px;list-style-type: none;}
-
-#login, #registration, #team, #game-settings-player {
-	width: 300px; 
-	margin: 200px auto; 
-	text-align: center;
+#game-settings-player, #team, #registration, #login {
+  width: 300px;
+  margin: 200px auto;
+  text-align: center;
 }
 
 #registration {
-	display:none;
+  display: none;
 }
 
 .error-message {
-	margin: 8px 0;
-	color: red;
-}
-
-#start-page form {
-	margin: 20px 0;
-	text-align: left;
-}
-
-#start-page label {
-	text-transform: uppercase;
-	font-size: 10px;
-	color:white;
-}
-
-#start-page input {
-	padding: 10px;
-	width: 300px;
-	margin: 15px 0;
-}
-
-#start-page button {
-	padding: 10px;
-	border: none;
-}
-
-#start-page button:hover {
-	background: #eee;
+  margin: 8px 0;
+  color: #e9764f;
 }
 
 #team {
-	display: none;
+  display: none;
 }
 
 #team-container {
-	display: flex;
-/*	grid-template-columns: auto auto;*/
+  display: flex;
+}
+#team-container #declarers, #team-container #opponents {
+  width: 50%;
+  background: #ffc857;
+  color: black;
+  padding: 10px;
+  margin: 10px;
+  border-radius: 5px;
+  transition: 0.1s linear;
+}
+#team-container #declarers:hover, #team-container #opponents:hover {
+  background: #fde5b3;
+}
+#team-container #declarers ul, #team-container #opponents ul {
+  list-style-type: none;
+  width: 100%;
+}
+#team-container #declarers li, #team-container #opponents li {
+  text-align: center;
+  padding: 3px 0;
 }
 
-#create-team {
-	/*display: none;*/
+#chat-page {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: stretch;
+  background: #efdecd;
+}
+
+.sidebar {
+  background: white;
+  height: 100%;
+  position: relative;
+}
+
+.legend {
+  padding: 5px 10px;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  height: auto;
+}
+.legend div {
+  padding: 15px 0px;
+  /*    margin: 5px 0;*/
+  text-align: center;
+  border-top: 1px solid #eee;
+}
+.legend div:nth-of-type(1) {
+  border-top: none;
+  margin-top: 0;
+}
+
+#my-player-stats {
+  position: absolute;
+  bottom: 0;
+  padding: 50px 10px;
 }
 
 #pop-up {
-	width: 600px;
-	height: 400px;
-	z-index: 50;
-	position: absolute;
-	top: 100px;
-	left: 100px;
-	background: white;
-	display: none;
-	box-shadow: 1px 1px 12px #ccc;
-	padding: 25px;
-	overflow: scroll;
+  width: 600px;
+  height: 400px;
+  z-index: 50;
+  position: absolute;
+  top: 100px;
+  margin: 50px auto;
+  background: white;
+  display: none;
+  box-shadow: 2px 2px 0px #999;
+  padding: 40px;
+  overflow: scroll;
 }
 
 #pop-up-inner {
-	display: grid;
+  display: grid;
+}
+#pop-up-inner .card-container {
+  border: 1px solid #ddd;
+  margin-left: 0;
+}
+#pop-up-inner div {
+  padding-bottom: 25px;
 }
 
 #pop-up-close {
-	position: absolute;
-	top: 10px;
-	right: 10px;
+  position: absolute;
+  top: 10px;
+  right: 10px;
 }
-
 #pop-up-close a {
-	text-decoration: none;
-	color: black;
-	font-size: 20px;
+  text-decoration: none;
+  color: black;
+  font-size: 20px;
 }
 
-.round {
-	padding: 10px;
-	border-bottom: 1px solid #eee;
+#chat {
+  width: 20%;
+  height: 100%;
+  position: relative;
+  flex-grow: 1;
+  background: white;
+}
+
+#chat #current-users {
+  background: #fefbf9;
+}
+#chat #all-users {
+  display: flex;
+}
+#chat #all-users div {
+  text-align: center;
+  width: 50%;
+}
+#chat #all-users div:nth-of-type(1) {
+  background: #fefbf9;
+}
+#chat #all-users div:nth-of-type(2n) {
+  background: #e6e2e1;
+}
+#chat #all-users p {
+  font-weight: 800;
+  background: #423643;
+  color: white;
+  padding: 5px 0;
+}
+#chat #all-users li {
+  padding: 5px 0;
+  list-style-type: none;
+}
+
+#chatbox {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+}
+#chatbox input {
+  border: none;
+  padding: 10px;
+  width: 80%;
+  margin: 0;
+  background: #e6e2e1;
+}
+#chatbox button {
+  width: 20%;
+  background: #423643;
+  color: white;
+  border: none;
+  padding: 10px;
+  margin-left: -4px;
+}
+
+#messages-container {
+  overflow: scroll;
+}
+
+#messages {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+#messages li {
+  padding: 5px 20px;
+}
+
+.disconnection-msg, .hand-msg, .connection-msg {
+  font-size: 10px;
+}
+
+.connection-msg {
+  color: white;
+  background: #0b8b63;
+}
+
+.disconnection-msg {
+  color: white;
+  background: #e9764f;
 }
 
 .game-space {
-	width: 800px;
+  width: 70%;
+  height: 100%;
+  background: #efdecd;
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  flex-grow: 2;
+  justify-content: space-around;
+}
+.game-space button {
+  padding: 10px 15px;
+  background: #423643;
+  color: white;
+  border-radius: 25px;
+  border: none;
+  transition: 0.2s linear;
+}
+.game-space button:hover {
+  background: #e9764f;
+  color: #423643;
 }
 
-.game-space button {
-	padding: 10px;
-	background: black;
-	color: white;
+#header {
+  text-align: center;
+  width: 100%;
+  padding: 60px 0 20px;
+}
+#header p {
+  font-size: 20px;
+}
+
+#center-msg {
+  height: 20px;
 }
 
 .center {
-	left: 250px;
-	top: 200px;
-	font-size: 24px;
-	text-align:center;
-	position: fixed;
-	width: 300px;
+  left: 250px;
+  top: 200px;
+  font-size: 24px;
+  text-align: center;
+  width: 50%;
+  padding: 40px;
 }
 
-.player-4, .player-2, .player-3 {
-	padding: 10px;
-	width: 150px;
-	text-align:center;
-	position: fixed;
+.player-2, .player-4, .player-3 {
+  padding: 10px;
+  text-align: center;
 }
 
 .player-3 {
-	top: 50px;
-	left: 325px;
+  width: 50%;
 }
 
 .player-4 {
-	top: 200px;
-	left: 50px;
+  width: 25%;
 }
 
 .player-2 {
-	top: 200px;
-	left: 600px;
+  width: 25%;
+}
+
+.space-1 {
+  width: 25%;
+}
+
+#player-4-cards, #player-2-cards, #player-3-cards, .play-hand {
+  text-align: center;
+  margin: 0 auto;
+  height: 80px;
+}
+#player-4-cards .card-container, #player-2-cards .card-container, #player-3-cards .card-container, .play-hand .card-container {
+  margin-left: 0 !important;
 }
 
 .play {
-	position: fixed;
-	top: 400px;
-	left: 150px;
-	width: 500px;
+  width: 50%;
 }
 
 .play-hand {
-	width: 250px;
-	margin: 0 auto;
-	text-align: center;
-}
-
-.play-hand-cards {
-	text-align: left;
-	display: grid;
-	grid-template-columns: repeat(5, 20px);
-}
-
-#view-plays {
-	float: right;
+  margin: 0 auto;
+  text-align: center;
 }
 
 .my-player {
-	position: fixed;
-	bottom: 50px;
-	left: 0px;
-	width: 800px;
-	text-align: center;
-}
-
-#my-player-side {
-	position: absolute;
-	right: 50px;
-	bottom: 50px;
+  width: 100%;
+  text-align: center;
+  position: relative;
+  padding-top: 30px;
 }
 
 #message {
-	padding: 10px;
+  padding: 10px;
+  color: #0b8b63;
+  margin-bottom: 20px;
 }
 
 .hand-cards {
-	text-align: left;
-	width: 250px;
-	margin: 0 auto;
-	display: grid;
-	grid-template-columns: repeat(13, 20px);
+  text-align: center;
+  padding: 0;
+  overflow: hidden;
+  margin-right: -70px;
+}
+.hand-cards .card-container {
+  width: 80px;
+  height: 107px;
+  border-radius: 10px;
+  padding-left: 10px;
+  margin: 0px 0px 0px -60px;
 }
 
 #hand-submit {
-/*	padding: 10px;
-	background: black;
-	color: white;*/
-	margin-top: 15px;
+  margin-top: 15px;
 }
 
 .card-container {
-	width: 60px;
-	height: 80px;
-	background: white;
-	border: 1px solid black;
-	padding: 5px;
-	position: relative;
+  width: 60px;
+  height: 80px;
+  background: white;
+  border: 2px solid #efdecd;
+  padding: 5px;
+  text-align: left;
+  position: relative;
+  border-radius: 5px;
+  display: inline-block;
+  vertical-align: top;
+  margin-left: -55px;
 }
 
 .card-checkbox {
-	opacity: 0;
+  opacity: 0;
 }
 
 .card-checkbox + .card-container {
@@ -281,35 +422,35 @@ h2 {text-transform: uppercase; font-size: 12px; margin-bottom: 5px;}
 }
 
 .card-checkbox:checked + .card-container {
-  background: #cff0ff;
+  background: #ffc857;
 }
 
 .card-nunber {
-	margin-left: 3px;
-	width: 25px;
-    word-wrap: break-word;
+  margin-left: 3px;
+  width: 25px;
+  word-wrap: break-word;
 }
 
 .joker {
-	text-align: center;
-	font-size: 11px;
-	position: absolute;
-	left: 5px;
+  text-align: center;
+  font-size: 11px;
+  position: absolute;
+  left: 5px;
 }
 
 .card-suit {
-	width: 10px;
-	margin-top: 3px;
+  width: 10px;
+  margin-top: 3px;
+}
+
+.green {
+  color: #0b8b63;
 }
 
 .red {
-	color: red;
+  color: #e9764f;
 }
 
-.legend {
-	width: 200px;
-	position: absolute;
-	top: 0;
-	left: 0;
-	padding: 20px;
-}
+/*# sourceMappingURL=style.css.map */
+
+/*# sourceMappingURL=style.css.map */

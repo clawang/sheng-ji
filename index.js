@@ -125,6 +125,14 @@ function startServer(fullDeck) {
 			}
 		});
 
+		socket.on('set team', function(tm) {
+			if(game.teams[tm].usernames.length < 2) {
+				game.setTeam(socket, io, tm);
+			} else {
+				socket.emit('team error', 'That team is already full!');
+			}
+		});
+
 		socket.on('start game', function() {
 			if(!startCount.includes(socket.id)) {
 				startCount.push(socket.id);
@@ -193,7 +201,10 @@ function startServer(fullDeck) {
 					users: game.users,
 					state: state
 				});
-				startCount.splice(startCount.findIndex(ele => ele === socket.id), 1);
+				const startPlace = startCount.findIndex(ele => ele === socket.id);
+				if(startPlace >= 0) {
+					startCount.splice(startPlace, 1);
+				}
 				if(state === 'paused') {
 					io.emit('pause game', socket.username);
 				}

@@ -1,0 +1,517 @@
+$default-font: 'Montserrat',
+sans-serif;
+$green: #0b8b63;
+$red: #e9764f;
+$yellow: #ffc857;
+$game-background-color: #efdecd;
+$small-column: 25%;
+$large-column: 50%;
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    height: 100vh;
+}
+
+body {
+    font: 13px $default-font;
+    height: 100vh;
+}
+
+h2 {
+    text-transform: uppercase;
+    font-size: 12px;
+    margin-bottom: 5px;
+}
+
+button {
+    font-family: $default-font;
+}
+
+#start-page, #game-settings {
+    background: #423643;
+    width: 100%;
+    height: 100%;
+    color: white;
+    position: absolute;
+    
+    button, input[type=submit] {
+        margin: 10px 0;
+        padding: 10px;
+        background: $red;
+        transition: 0.2s linear;
+        width: 100%;
+        border: none;
+        font-family: $default-font;
+        border-radius: 20px;
+        color: white;
+    }
+    
+    button:hover, input[type=submit]:hover {
+        background: #222;
+    }
+    
+    form {
+        margin: 20px 0;
+        text-align: left;
+    }
+    label {
+        text-transform: uppercase;
+        font-size: 10px;
+        color: white;
+        margin-bottom: -5px;
+    }
+    input[type=text] {
+        padding: 10px;
+        width: 300px;
+        margin: 15px 0;
+    }
+    
+    a {
+        color: $yellow;
+        &:visited {
+            color: $green;
+        }
+        &:hover {
+            color: $red;
+        }
+    }
+}
+
+#start-page {
+    z-index: 50;
+}
+
+#game-settings {
+    z-index: 49;
+    
+    h1 {
+        margin-bottom: 15px;
+    }
+}
+
+#restart-game {
+    display: none;
+}
+
+%startscreen-shared {
+    width: 300px;
+    margin: 200px auto;
+    text-align: center;
+}
+
+#login {
+    @extend %startscreen-shared;
+}
+
+#registration {
+    @extend %startscreen-shared;
+    display: none;
+}
+
+.error-message {
+    margin: 8px 0;
+    color: $red;
+}
+
+#team {
+    @extend %startscreen-shared;
+    display: none;
+}
+
+#game-settings-player {
+    @extend %startscreen-shared;
+}
+
+#team-container {
+    display: flex;
+    
+    #declarers, #opponents {
+        width: 50%;
+        background: $yellow;
+        color: black;
+        padding: 10px;
+        margin: 10px;
+        border-radius: 5px;
+        transition: 0.1s linear;
+        
+        &:hover {
+            background: #fde5b3; 
+        }
+        
+        ul {
+            list-style-type: none;
+            width: 100%;
+        }
+        
+        li {
+            text-align: center;
+            padding: 3px 0;
+        }
+    }
+}
+
+#chat-page {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    align-items: stretch;
+    background: $game-background-color;
+}
+
+.sidebar {
+    background: white;
+    height: 100%;
+    position: relative;
+}
+
+.legend {
+    padding: 5px 10px;
+    background: white;
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    div {
+        padding: 15px 0px;
+        /*    margin: 5px 0;*/
+        text-align: center;
+        border-top: 1px solid #eee;
+    }
+    div:nth-of-type(1) {
+        border-top: none;
+        margin-top: 0;
+    }
+}
+
+#my-player-stats {
+    position: absolute;
+    bottom: 0;
+    padding: 50px 10px;
+}
+
+#pop-up {
+    width: 600px;
+    height: 400px;
+    z-index: 50;
+    position: absolute;
+    top: 100px;
+    margin: 50px auto;
+    background: white;
+    display: none;
+    box-shadow: 2px 2px 0px #999;
+    padding: 40px;
+    overflow: scroll;
+}
+
+#pop-up-inner {
+    display: grid;
+    
+    .card-container {
+        border: 1px solid #ddd;
+        margin-left: 0;
+    }
+    
+    div {
+        padding-bottom: 25px;
+    }
+}
+
+#pop-up-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    
+    a {
+        text-decoration: none;
+        color: black;
+        font-size: 20px;
+    }
+}
+
+#chat {
+    width: 20%;
+    height: 100%;
+    position: relative;
+    flex-grow: 1;
+    background: white;
+}
+
+#chat {
+    #current-users {
+        background: #fefbf9;
+    }
+    
+    #all-users {
+        display: flex;
+        
+        div {
+            text-align: center;
+            width: 50%;
+//            border-right: 1px solid #423643;
+        }
+        
+        div:nth-of-type(1) {
+            background: #fefbf9;
+        }
+        
+        div:nth-of-type(2n) {
+            background: #e6e2e1;
+        }
+        
+        p {
+            font-weight: 800;
+            background: #423643;
+            color: white;
+            padding: 5px 0;
+        }
+        
+        li {
+            padding: 5px 0;
+            list-style-type: none;
+        }
+        
+    }
+}
+
+#chatbox {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    
+    input {
+        border: none;
+        padding: 10px;
+        width: 80%;
+        margin: 0;
+        background: #e6e2e1;
+    }
+    
+    button {
+        width: 20%;
+        background: #423643;
+        color: white;
+        border: none;
+        padding: 10px;
+        margin-left: -4px;
+    }
+}
+
+#messages-container {
+    overflow: scroll;
+}
+
+#messages {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    
+    li {
+        padding: 5px 20px;
+    }
+}
+
+%chat-message-shared {
+    font-size: 10px;
+}
+
+.connection-msg {
+    @extend %chat-message-shared;
+    color: white;
+    background: $green;
+}
+
+.hand-msg {
+    @extend %chat-message-shared;
+}
+
+.disconnection-msg {
+    @extend %chat-message-shared;
+    color: white;
+    background: $red;
+}
+
+.game-space {
+    width: 70%;
+    height: 100%;
+    background: $game-background-color;
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    flex-grow: 2;
+    justify-content: space-around;
+    
+    button {
+        padding: 10px 15px;
+        background: #423643;
+        color: white;
+        border-radius: 25px;
+        border: none;
+        transition: 0.2s linear;
+    }
+    
+    button:hover {
+        background: #e9764f;
+        color: #423643;
+    }
+}
+
+#header {
+    text-align: center;
+    width: 100%;
+    padding: 60px 0 20px;
+    
+    p {
+        font-size: 20px;
+    }
+}
+
+#center-msg {
+    height: 20px;
+}
+
+.center {
+    left: 250px;
+    top: 200px;
+    font-size: 24px;
+    text-align: center;
+    width: 50%;
+    padding: 40px;
+}
+
+%player-shared {
+    padding: 10px;
+//    width: 100px;
+    text-align: center;
+}
+
+.player-3 {
+    @extend %player-shared;
+    width: $large-column;
+}
+
+.player-4 {
+    @extend %player-shared;
+    width: $small-column;
+}
+
+.player-2 {
+    @extend %player-shared;
+    width: $small-column;
+}
+
+.space-1 {
+    width: $small-column;
+}
+
+#player-4-cards, #player-2-cards, #player-3-cards, .play-hand {
+    text-align: center;
+    margin: 0 auto;
+    height: 80px;
+    
+    .card-container {
+        margin-left: 0 !important;
+    }
+}
+
+.play {
+    width: 50%;
+}
+
+.play-hand {
+    margin: 0 auto;
+    text-align: center;
+}
+
+.play-hand-cards {
+}
+
+.my-player {
+    width: 100%;
+    text-align: center;
+    position: relative;
+    padding-top: 30px;
+}
+
+#message {
+    padding: 10px;
+    color: $green;
+    margin-bottom: 20px;
+}
+
+.hand-cards {
+    text-align: center;
+    padding: 0;
+    overflow: hidden;
+    margin-right: -70px;
+    
+    .card-container {
+        width: 80px;
+        height: 107px;
+        border-radius: 10px;
+        padding-left: 10px;
+        margin: 0px 0px -0px -60px;
+    }
+}
+
+#hand-submit {
+    margin-top: 15px;
+}
+
+.card-container {
+    width: 60px;
+    height: 80px;
+    background: white;
+    border: 2px solid $game-background-color;
+    padding: 5px;
+    text-align: left;
+    position: relative;
+    border-radius: 5px;
+    display: inline-block;
+    vertical-align: top;
+    margin-left: -55px;
+}
+
+.card-checkbox {
+    opacity: 0;
+}
+
+.card-checkbox + .card-container {
+    cursor: pointer;
+}
+
+.card-checkbox:checked + .card-container {
+    background: $yellow;
+}
+
+.card-nunber {
+    margin-left: 3px;
+    width: 25px;
+    word-wrap: break-word;
+}
+
+.joker {
+    text-align: center;
+    font-size: 11px;
+    position: absolute;
+    left: 5px;
+}
+
+.card-suit {
+    width: 10px;
+    margin-top: 3px;
+}
+
+.green {
+    color: $green;
+}
+
+.red {
+    color: $red;
+}
+
+
+/*# sourceMappingURL=style.css.map */
