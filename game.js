@@ -33,6 +33,8 @@ class Game {
     this.opponents = 1;
     this.gameState = 'unstarted';
     this.connections = [];
+    this.left = [];
+    this.set = false;
   }
 
   getUsername(id) {
@@ -119,13 +121,19 @@ class Game {
     this.playerIds[newSocket.number] = newSocket.id;
     this.connections.push(newSocket);
     this.connections.splice(this.connections.findIndex(ele => ele.id === socket.id), 1);
+    this.left.splice(this.left.findIndex(ele => ele === newSocket.username), 1);
     this.broadcastAddUser(newSocket, io, newSocket.points);
     if(this.gameState === 'paused') {
       newSocket.emit('resetup player', {hand: newSocket.hand, turn: newSocket.isTurn});
       io.emit('setup game', {trumpSuit: this.trumpSuit, trumpValue: this.trumpValue, points: this.points, deck: this.fullDeck, teams: this.teams, declarers: this.declarers, users: this.users});
-      io.emit('unpause game', {});
-      this.players[this.playerIds[this.turn]].emit('your turn', {plays: this.currentRound.played});
-      this.gameState = 'playing';
+      if(this.left.length <= 0) {
+        io.emit('unpause game', {});
+        io.emit('next turn', {usrnm: this.players[this.playerIds[this.turn]].username, turn: this.turn});
+        this.players[this.playerIds[this.turn]].emit('your turn', {plays: this.currentRound.played});
+        this.gameState = 'playing';
+      } else {
+        io.emit('pause game', this.left);
+      }
     } 
   }
 
@@ -134,7 +142,6 @@ class Game {
     socket.username = usrnm;
     socket.points = pts;
     socket.left = false;
-    // this.users.push(usrnm);
     this.connections.push(socket);
     socket.emit('get user type', this.activeUsers);
   }
@@ -178,22 +185,19 @@ class Game {
     }
   }
 
+  editSettings(set) {
+    this.trumpValue = parseInt(set.trumpValue);
+    this.trumpSuit = String(set.trumpSuit);
+    this.set = true;
+  }
+
   setupPlayers() {
     let i = 0;
     this.connections.forEach(function(ele) {
       if(ele.type === 'player') {
-        // let tm;
-        // if(i % 2 === 0) {
-        //   tm = 0;
-        // } else {
-        //   tm = 1;
-        // }
-        // this.teams[tm].members.push(ele.number);
-        // this.teams[tm].usernames.push(ele.username);
         this.playerIds[ele.number] = ele.id;
         this.users[ele.number] = ele.username;
         this.players[ele.id] = ele;
-        // ele.number = this.playerIds.length - 1;
         if(ele.number === this.turn) {
            ele.isTurn = true;
         } else {
@@ -213,15 +217,16 @@ class Game {
 
   removeUser(socket) {
     if(this.gameState === 'unstarted' || socket.type === 'spectator') {
-      this.users.splice(this.users.indexOf(socket.username), 1);
-      this.teams[socket.team].usernames.splice(this.teams[socket.team].usernames.indexOf(socket.username), 1);
       this.connections.splice(this.connections.findIndex(ele => ele.username === socket.username), 1);
       if(socket.type === 'player') {
+        this.users.splice(this.users.indexOf(socket.username), 1);
+        this.teams[socket.team].usernames.splice(this.teams[socket.team].usernames.indexOf(socket.username), 1);
         this.activeUsers--;
       }
     } else {
       if(this.players[socket.id] !== undefined) {
         this.players[socket.id].left = true;
+        this.left.push(socket.username);
         this.gameState = 'paused';
       }
       return this.gameState;
@@ -232,7 +237,9 @@ class Game {
     this.gameState = 'playing';
     this.deck = this.fullDeck.slice();
     this.setupPlayers();
-    this.trumpSuit = suits[Math.floor(Math.random() * 4)];
+    if(this.trumpSuit === 'random') {
+      this.trumpSuit = suits[Math.floor(Math.random() * 4)];
+    }
     this.adjustValues(this.fullDeck, this.trumpValue, this.trumpSuit);
     io.emit('setup game', {trumpSuit: this.trumpSuit, trumpValue: this.trumpValue, points: this.points, deck: this.fullDeck, teams: this.teams, declarers: this.declarers, users: this.users});
     for(let i = 0; i < this.playerIds.length; i++) {
@@ -258,6 +265,7 @@ class Game {
     this.turn = (this.turn + 1) % 4;
     this.players[socket.id].emit('my recent play', {hand: this.players[socket.id].hand, cards: cd}); //updates recent play
     if(this.currentRound.played < 4) {
+      io.emit('next turn', {usrnm: this.players[this.playerIds[this.turn]].username, turn: this.turn});
       this.players[this.playerIds[this.turn]].emit('your turn', {suit: this.currentRound.suit, plays: this.currentRound.played}); //signifies to next player that it's their turn
     } else { //end of round
       this.endRound(socket, io);
@@ -329,10 +337,16 @@ class Game {
     winner2.points += this.ranks;
     this.teams[this.winner].score += this.ranks;
 
+    let finish = false;
+    if(this.teams[this.winner].score > 14) {
+      finish = true;
+    }
+
     io.emit('end game', {
       msg: msg,
       winner: this.winner,
-      ranks: this.ranks
+      ranks: this.ranks,
+      finish: finish
     });
   }
 
@@ -352,15 +366,10 @@ class Game {
     this.opponents = (this.declarers + 1) % 2;
     this.turn = this.starter;
     this.trumpValue = this.teams[this.winner].score;
-    // this.trumpSuitIndex = (this.trumpSuitIndex + 1) % 4;
-    // this.trumpSuit = suits[this.trumpSuitIndex];
     this.roundIndex = 0;
     this.points = 0;
     this.ranks = 0;
     this.fullDeck = this.fullDeck.sort(() => Math.random() - 0.5);
-    // this.players.forEach(function(ele) {
-    //   this.startUser(ele);
-    // }, this);
     this.startGame(io);
   }
 }

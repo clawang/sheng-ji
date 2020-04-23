@@ -103,6 +103,9 @@ function startServer(fullDeck) {
 			  		const status = game.checkUsers(user.username, socket, io);
 			  		if(status === 0) {
 			  			game.addUser(socket, io, user.username, userDoc.points);
+			  			if(game.set) {
+			  				io.emit('remove settings', {});
+			  			}
 			  		} else if(status === 1) {
 			  			socket.emit('login error', 'You are already logged in!');
 			  		} else {
@@ -133,7 +136,7 @@ function startServer(fullDeck) {
 			}
 		});
 
-		socket.on('start game', function() {
+		socket.on('start game', function(settings) {
 			if(!startCount.includes(socket.id)) {
 				startCount.push(socket.id);
 			}
@@ -142,6 +145,9 @@ function startServer(fullDeck) {
 				Play.deleteMany({}, function(err, result) {
 					game.startGame(io);
 				});
+			} else if(startCount.length === 1) {
+				game.editSettings(settings);
+				io.emit('remove settings', {});
 			}
 		});
 		socket.on('chat message', function(msg){
@@ -206,7 +212,7 @@ function startServer(fullDeck) {
 					startCount.splice(startPlace, 1);
 				}
 				if(state === 'paused') {
-					io.emit('pause game', socket.username);
+					io.emit('pause game', game.left);
 				}
 			}
 		// console.log(socket.username);

@@ -1,9 +1,11 @@
-// const suitSrc = {
-//   spades: '/img/spades.png',
-//   hearts: '/img/hearts.png',
-//   clubs: '/img/clubs.png',
-//   diamonds: '/img/diamonds.png'
-// }
+const suitSrc = {
+  spades: '/img/spades.png',
+  hearts: '/img/hearts.png',
+  clubs: '/img/clubs.png',
+  diamonds: '/img/diamonds.png'
+}
+
+const valueToDisplay = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
 
 const playerObjects = [$('.play-hand-cards'), $('#player-2-cards'), $('#player-3-cards'), $('#player-4-cards')];
 const playerNames = [$('div.player-2 > h2'), $('div.player-3 > h2'), $('div.player-4 > h2'), $('div.play-hand > h2')]
@@ -84,7 +86,7 @@ $(function () {
     e.preventDefault(); // prevents page reloading
     $('#center-msg').html('Waiting...');
     $('#start-game').fadeOut();
-    socket.emit('start game', {});
+    socket.emit('start game', {trumpValue: $('#setTrumpValue').val(), trumpSuit: $('#setTrumpSuit').val()});
     return false;
   });
 
@@ -94,7 +96,6 @@ $(function () {
     const result = [];
     for(let i = 0; i < arr.length; i++) {
       result[i] = arr[i].value;
-      console.log(arr[i].value);
     }
     if(result.length > 1) {
         $('#center-msg').html("<span class='red'>You can only play one card!<span>");
@@ -123,6 +124,16 @@ $(function () {
     e.preventDefault(); // prevents page reloading
     $('#pop-up').fadeOut();
     return false;
+  });
+
+  $('#help-link').click(function(e) {
+    e.preventDefault();
+    $('#instructions').fadeIn();
+  });
+
+  $('#instructions-close').click(function(e) {
+    e.preventDefault();
+    $('#instructions').fadeOut();
   });
 
   $('#chatbox').submit(function(e){
@@ -168,13 +179,13 @@ $(function () {
     const teamUsers = ['', ''];
     for(let i = 0; i < 2; i++) {
       if(teams[i].usernames.length > 0) {
-        teamUsers[i] = getList(teams[i].usernames);
+        teamUsers[i] = '<ul>' + getList(teams[i].usernames) + '</ul>';
       } else {
-        teamUsers[i] = 'No players yet.';
+        teamUsers[i] = '<p>No players yet.</p>';
       }
     }
-    $('#declarers > div').html('<ul>' + teamUsers[0] + '</ul>');
-    $('#opponents > div').html('<ul>' + teamUsers[1] + '</ul>');
+    $('#declarers > div').html(teamUsers[0]);
+    $('#opponents > div').html(teamUsers[1]);
     $('#team').fadeIn();
   });
 
@@ -190,6 +201,10 @@ $(function () {
 
   socket.on('spectator joined', function(sock){
     $('#messages').append($('<li class="connection-msg">').text(sock + ' has joined as a spectator'));
+  });
+
+  socket.on('remove settings', function() {
+    $('#edit-settings').fadeOut();
   });
 
   socket.on('spectate mode', function(){
@@ -216,41 +231,45 @@ $(function () {
   });
 
   socket.on('setup game', function(tr){
-    $('#trump-suit').html(tr.trumpSuit);
-    $('#trump-rank').html(tr.trumpValue);
+    $('#trump-suit').html('<img src="' + suitSrc[tr.trumpSuit] + '"">');
+    $('#trump-rank').html(valueToDisplay[tr.trumpValue]);
     $('#points').html(tr.points);
     $('#center-msg').html('');
     $('#start-game').fadeOut();
     fullDeck = tr.deck;
-    $('#view-plays').fadeIn();    
-    $('#view-plays').prop('disabled', false);
+    if(playerType === 'player') {
+      $('#view-plays').fadeIn();    
+      $('#view-plays').prop('disabled', false);
+    }
     $('#all-users').css('display','flex');
-    $('#all-users').html('<div><p>Declarers: '+tr.teams[tr.declarers].score+'</p><li>'+tr.teams[tr.declarers].usernames[0] + '</li><li>' + tr.teams[tr.declarers].usernames[1]+'</li></div><div><p>Opponents: '+tr.teams[(tr.declarers+1)%2].score+'</p><li>'+tr.teams[(tr.declarers+1)%2].usernames[0]+'</li><li>'+tr.teams[(tr.declarers+1)%2].usernames[1]+'</li></div>');
+    $('#all-users').html('<div><h2>Declarers – '+tr.teams[tr.declarers].score+'</h2><li>'+tr.teams[tr.declarers].usernames[0] + '</li><li>' + tr.teams[tr.declarers].usernames[1]+'</li></div><div><h2>Opponents – '+tr.teams[(tr.declarers+1)%2].score+'</h2><li>'+tr.teams[(tr.declarers+1)%2].usernames[0]+'</li><li>'+tr.teams[(tr.declarers+1)%2].usernames[1]+'</li></div>');
     for(let i = 0; i < 4; i++) {
-      if(playerType === 'player') {
-        const position = (i - playerId + 3) % 4;
-        if(position !== 3) {
+      const position = (i - playerId + 3) % 4;
+      if(playerType === 'player' && position !== 3) {
           playerNames[position].html(tr.users[i]);
-        }
-      } else {
+      } else if(playerType === 'spectator') {
         playerNames[(i + 3) % 4].html(tr.users[i]);
       }
     }
   });
 
   socket.on('game message', function(data){
-    // $('#messages').append($('<li class="hand-msg">').text(msg));
     let name;
+    let msg;
     if(data.winner === playerId) {
       name = 'You';
+      msg = '<div class="green">';
     } else {
       name = data.user;
+      msg = '<div>';
     }
-    $('#center-msg').html('<p>'+name+' won the round!</p><h4>'+data.subtitle+'</h4>');
+    msg += '<p>' + name+' won the round!</p><h4>'+data.subtitle+'</h4></div>';
+    $('#center-msg').html(msg);
   });
 
   socket.on('chat message', function(msg){
     $('#messages').append($('<li class="chat-msg">').text(msg.username + ": " + msg.body));
+    $('#messages-container').scrollTop($('#messages').prop('scrollHeight'));
   });
 
   socket.on('display plays', function(plays){
@@ -290,13 +309,19 @@ $(function () {
   });
 
   socket.on('your turn', function(data) {
-    $('#center-msg').html("<p class='green'>It's your turn!</p>");
     $('#hand-submit').prop('disabled', false);
     currentSuit = data.suit;
     if(data.plays < 1) {
-      starter = true;
+      // starter = true;
     } else {
-      starter = false;
+      $('#center-msg').html("<p class='green'>It's your turn!</p>");
+      // starter = false;
+    }
+  });
+
+  socket.on('next turn', function(data) {
+    if(data.turn !== playerId) {
+      $('#center-msg').html("<p>It's " + data.usrnm + "'s turn</p>");
     }
   });
 
@@ -314,7 +339,9 @@ $(function () {
 
   socket.on('end game', function(game){
     $('#center-msg').html(game.msg);
-    $('#restart-game').fadeIn();
+    if(!game.finish) {
+      $('#restart-game').fadeIn();
+    }
   });
 
   socket.on('update score', function(pts){
@@ -322,9 +349,13 @@ $(function () {
     $('#my-score').html(pts);
   });
 
-  socket.on('pause game', function(name) {
+  socket.on('pause game', function(names) {
     $('#hand-submit').prop('disabled', true);
-    $('#center-msg').html(name+' left. Game paused.');
+    let word = 'have';
+    if(names.length === 1) {
+      word = 'has';
+    } 
+    $('#center-msg').html('<p>Game paused.</p><h4>' + arrToList(names) + ' ' + word + ' left.</h4>');
   });
 
   socket.on('unpause game', function(name) {
@@ -332,6 +363,15 @@ $(function () {
   });
 
 });
+
+function arrToList(arr) {
+  let msg = '';
+  msg = arr[0];
+  for(let i = 1; i < arr.length; i++) {
+    msg += ', ' + arr[i];
+  }
+  return msg;
+}
 
 function getList(arr) {
   const arrMapped = arr.map(element => '<li>' + element + '</li>');
@@ -378,7 +418,6 @@ function cardsToCheckbox(element) {
 }
 
 function getSuit(value) {
-  console.log(fullDeck);
   const card = fullDeck.find(ele => ele.index === parseInt(value));
   return card.adjSuit;
 }
