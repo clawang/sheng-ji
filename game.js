@@ -366,6 +366,7 @@ class Game {
     this.opponents = (this.declarers + 1) % 2;
     this.turn = this.starter;
     this.trumpValue = this.teams[this.winner].score;
+    this.trumpSuit = 'random';
     this.roundIndex = 0;
     this.points = 0;
     this.ranks = 0;
