@@ -92,7 +92,7 @@ button {
         margin-bottom: -5px;
         font-family: $header-font;
     }
-    input[type=text] {
+    input[type=text], input[type=password] {
         padding: 10px;
         width: 300px;
         margin: 15px 0;
@@ -569,6 +569,10 @@ button {
 .play-hand {
     margin: 0 auto;
     text-align: center;
+
+    h2 {
+        display: none;
+    }
 }
 
 .play-hand-cards {
@@ -603,6 +607,7 @@ button {
 }
 
 #hand-submit {
+    display: none;
     margin-top: 15px;
 }
 

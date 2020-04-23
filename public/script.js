@@ -212,6 +212,8 @@ $(function () {
     $('.my-player').html('');
     $('#view-plays').css('display','none');
     $('#start-game').css('display','none');
+    $('#edit-settings').css('display','none');
+    $('.center-msg').html('Waiting...');
     playerType = 'spectator';
   });
 
@@ -237,9 +239,11 @@ $(function () {
     $('#center-msg').html('');
     $('#start-game').fadeOut();
     fullDeck = tr.deck;
+    $('div.play-hand > h2').fadeIn();
     if(playerType === 'player') {
       $('#view-plays').fadeIn();    
       $('#view-plays').prop('disabled', false);
+      $('#hand-submit').fadeIn();
     }
     $('#all-users').css('display','flex');
     $('#all-users').html('<div><h2>Declarers – '+tr.teams[tr.declarers].score+'</h2><li>'+tr.teams[tr.declarers].usernames[0] + '</li><li>' + tr.teams[tr.declarers].usernames[1]+'</li></div><div><h2>Opponents – '+tr.teams[(tr.declarers+1)%2].score+'</h2><li>'+tr.teams[(tr.declarers+1)%2].usernames[0]+'</li><li>'+tr.teams[(tr.declarers+1)%2].usernames[1]+'</li></div>');
