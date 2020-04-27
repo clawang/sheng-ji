@@ -10,12 +10,14 @@ class Game {
     this.teams[0]= {
       members: [0, 2],
       usernames: [],
-      score: 2
+      score: 2,
+      newScore: 2
     }
     this.teams[1]= {
       members: [1, 3],
       usernames: [],
-      score: 2
+      score: 2,
+      newScore: 2
     }
     this.players = [];
     this.playerIds = [];
@@ -38,7 +40,11 @@ class Game {
   }
 
   getUsername(id) {
-    return this.players[this.playerIds[id]].username;
+    if(this.playerIds[id] !== undefined) {
+      return this.players[this.playerIds[id]].username;
+    } else {
+      return 'username';
+    }
   }
 
   getRound() {
@@ -236,6 +242,7 @@ class Game {
   }
 
   startGame(io) {
+    this.teams.forEach(ele => ele.score = ele.newScore);
     this.gameState = 'playing';
     this.deck = this.fullDeck.slice();
     this.setupPlayers();
@@ -319,9 +326,7 @@ class Game {
 
     if(this.points <= 0) {
       this.ranks = 2;
-    } else if(this.points > 0 && this.points < 40) {
-      this.ranks = 1;
-    } else if(this.points >= 40 && this.points < 80) {
+    } else if(this.points > 0 && this.points < 80) {
       this.ranks = 1;
     } else if(this.points >= 80 && this.points < 120) {
       this.ranks = 2;
@@ -333,19 +338,21 @@ class Game {
       this.ranks = 5;
     }
 
-    msg = winner1.username + ' and ' + winner2.username + ' won! Their score increases by ' + this.ranks;
+    msg = winner1.username + ' and ' + winner2.username + ' won!';
+    const subtitle = 'Their score increases by ' + this.ranks;
 
     winner1.points += this.ranks;
     winner2.points += this.ranks;
-    this.teams[this.winner].score += this.ranks;
+    this.teams[this.winner].newScore += this.ranks;
 
     let finish = false;
-    if(this.teams[this.winner].score > 14) {
+    if(this.teams[this.winner].newScore > 14) {
       finish = true;
     }
 
     io.emit('end game', {
       msg: msg,
+      subtitle: subtitle,
       winner: this.winner,
       ranks: this.ranks,
       finish: finish
@@ -360,14 +367,14 @@ class Game {
 
   restartGame(io) {
     if(this.declarers !== this.winner) { //change starter
-      this.starter += 1;
+      this.starter = (this.starter + 1) % 4;
     } else {
-      this.starter += 2;
+      this.starter = (this.starter + 2) % 4;
     }
     this.declarers = this.winner; //sets declarers from past winner
     this.opponents = (this.declarers + 1) % 2;
     this.turn = this.starter;
-    this.trumpValue = this.teams[this.winner].score;
+    this.trumpValue = this.teams[this.winner].newScore;
     this.trumpSuit = 'random';
     this.roundIndex = 0;
     this.points = 0;

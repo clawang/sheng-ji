@@ -49,6 +49,23 @@ button {
   font-family: "Montserrat", sans-serif;
 }
 
+table {
+  border-collapse: collapse;
+  margin-bottom: 15px;
+}
+
+th {
+  padding: 3px 10px;
+  text-align: left;
+  background: #423643;
+  color: white;
+}
+
+td {
+  padding: 3px 10px;
+  border: 1px solid #423643;
+}
+
 #start-page, #game-settings {
   background: #423643;
   width: 100%;
@@ -202,7 +219,7 @@ button {
 }
 
 #pop-up {
-  width: 600px;
+  width: 700px;
   height: 400px;
   top: 100px;
 }
@@ -216,6 +233,13 @@ button {
 }
 #pop-up-inner div {
   padding-bottom: 25px;
+}
+#pop-up-inner h3 {
+  font-weight: 100;
+  margin: 15px 0;
+}
+#pop-up-inner tr td:first-child {
+  background-color: #e6e2e1;
 }
 
 #instructions {
@@ -234,30 +258,17 @@ button {
   line-height: 1.5em;
   margin-bottom: 15px;
 }
-#instructions table {
-  border-collapse: collapse;
-  margin-bottom: 15px;
-}
-#instructions th {
-  padding: 3px 10px;
-  text-align: left;
-  background: #423643;
-  color: white;
-}
-#instructions td {
-  padding: 3px 10px;
-  border: 1px solid #423643;
-}
 
 #instructions-close, #pop-up-close {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 25px;
+  right: 25px;
 }
 #instructions-close a, #pop-up-close a {
   text-decoration: none;
   color: black;
   font-size: 20px;
+  font-family: "Montserrat Light", sans-serif;
 }
 
 #chat {
@@ -565,6 +576,14 @@ button {
 
 .red {
   color: #e9764f;
+}
+
+.yellow {
+  color: #ffc857;
+}
+
+.winner {
+  background-color: #ffc857;
 }
 
 @media only screen and (max-width: 850px) {

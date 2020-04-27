@@ -58,6 +58,23 @@ button {
     font-family: $header-font;
 }
 
+table {
+    border-collapse: collapse;
+    margin-bottom: 15px;
+}
+
+th {
+    padding: 3px 10px;
+    text-align: left;
+    background: #423643;
+    color: white;
+}
+
+td {
+    padding: 3px 10px;
+    border: 1px solid #423643;
+}
+
 #start-page, #game-settings {
     background: #423643;
     width: 100%;
@@ -235,16 +252,9 @@ button {
 
 #pop-up {
     @extend %pop-up-shared;
-    width: 600px;
+    width: 700px;
     height: 400px;
-    // z-index: 50;
-    // position: absolute;
     top: 100px;
-    // background: white;
-    // display: none;
-    // box-shadow: 2px 2px 0px #999;
-    // padding: 40px;
-    // overflow: scroll;
 }
 
 #pop-up-inner {
@@ -257,6 +267,15 @@ button {
     
     div {
         padding-bottom: 25px;
+    }
+
+    h3 {
+        font-weight: 100;
+        margin: 15px 0;
+    }
+
+    tr td:first-child {
+        background-color: #e6e2e1;
     }
 }
 
@@ -279,34 +298,18 @@ button {
         line-height: 1.5em;
         margin-bottom: 15px;
     }
-
-    table {
-        border-collapse: collapse;
-        margin-bottom: 15px;
-    }
-
-    th {
-        padding: 3px 10px;
-        text-align: left;
-        background: #423643;
-        color: white;
-    }
-
-    td {
-        padding: 3px 10px;
-        border: 1px solid #423643;
-    }
 }
 
 %close-window-shared {
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: 25px;
+    right: 25px;
     
     a {
         text-decoration: none;
         color: black;
         font-size: 20px;
+        font-family: $default-font;
     }
 }
 
@@ -661,6 +664,14 @@ button {
 
 .red {
     color: $red;
+}
+
+.yellow {
+    color: $yellow;
+}
+
+.winner {
+    background-color: $yellow;
 }
 
 @media only screen and (max-width: 850px) {

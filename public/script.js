@@ -24,20 +24,19 @@ $(function () {
     $('button').css('cursor', 'pointer');
     $('#declarers').css('cursor', 'pointer');
     $('#opponents').css('cursor', 'pointer');
-    // console.log('page load');
   });
 
   $('#create-user').submit(function(e){
-    e.preventDefault(); // prevents page reloading
-    socket.emit('add user', {username: $('#create-user > #username').val(), password: $('#create-user > #password').val()});
-    return false;
-  });
+  e.preventDefault(); // prevents page reloading
+  socket.emit('add user', {username: $('#create-user > #username').val(), password: $('#create-user > #password').val()});
+  return false;
+});
 
   $('#login-user').submit(function(e){
-    e.preventDefault(); // prevents page reloading
-    socket.emit('login', {username: $('#login-user > #username').val(), password: $('#login-user > #password').val()});
-    return false;
-  });
+  e.preventDefault(); // prevents page reloading
+  socket.emit('login', {username: $('#login-user > #username').val(), password: $('#login-user > #password').val()});
+  return false;
+});
 
   $('#login-link').click(function(e) {
     e.preventDefault();
@@ -83,52 +82,58 @@ $(function () {
   });
 
   $('#start-game').click(function(e){
-    e.preventDefault(); // prevents page reloading
-    if(parseInt($('#setTrumpValue').val()) > 14 || parseInt($('#setTrumpValue').val()) < 2) {
-      $('#center-msg').html('<p class="red">The trump rank must be between 2 and 14.</p>');
-    } else {
-      $('#center-msg').html('Waiting...');
-      $('#start-game').fadeOut();
-      socket.emit('start game', {trumpValue: $('#setTrumpValue').val(), trumpSuit: $('#setTrumpSuit').val()});
-    }
-    return false;
-  });
+  e.preventDefault(); // prevents page reloading
+  if(parseInt($('#setTrumpValue').val()) > 14 || parseInt($('#setTrumpValue').val()) < 2) {
+    printMsg("The trump rank must be between 2 and 14.", "", "red");
+  } else {
+    printMsg('Waiting...');
+    $('#start-game').fadeOut();
+    socket.emit('start game', {trumpValue: $('#setTrumpValue').val(), trumpSuit: $('#setTrumpSuit').val()});
+  }
+  return false;
+});
 
   $('#hand-form').submit(function(e){
-    e.preventDefault(); // prevents page reloading
-    const arr = $('.card-checkbox:checkbox:checked');
-    const result = [];
-    for(let i = 0; i < arr.length; i++) {
-      result[i] = arr[i].value;
+  e.preventDefault(); // prevents page reloading
+  const arr = $('.card-checkbox:checkbox:checked');
+  const result = [];
+  for(let i = 0; i < arr.length; i++) {
+    result[i] = arr[i].value;
+  }
+  if(result.length > 1) {
+    printMsg("You can only play one card!", "", "red");
+  } else if(result.length < 1) {
+    printMsg("You didn't select a card!", "", "red");
+  }else {
+    const suit = getSuit(result[0]);
+    if(suit === currentSuit || !checkForSuit(currentHand, currentSuit)) { //can only play card if it follows rules
+      $('#hand-submit').prop('disabled', true);
+      clearMsg();
+      socket.emit('submit hand', {cards: result, id: playerId});
+    } else {
+      printMsg("You can't play that card!", "", "red");
     }
-    if(result.length > 1) {
-        $('#center-msg').html("<span class='red'>You can only play one card!<span>");
-    } else if(result.length < 1) {
-        $('#center-msg').html("<span class='red'>You didn't select a card!</span>");
-    }else {
-      const suit = getSuit(result[0]);
-      if(suit === currentSuit || !checkForSuit(currentHand, currentSuit)) { //can only play card if it follows rules
-        $('#hand-submit').prop('disabled', true);
-        $('#center-msg').html('');
-        socket.emit('submit hand', {cards: result, id: playerId});
-      } else {
-        $('#center-msg').html("<span class='red'>You can't play that card!</span>");
-      }
-    }
-    return false;
-  });
+  }
+  return false;
+});
 
   $('#view-plays').click(function(e){
-    e.preventDefault(); // prevents page reloading
-    socket.emit('get plays', playerId);
-    return false;
-  });
+  e.preventDefault(); // prevents page reloading
+  socket.emit('get plays', playerId);
+  return false;
+});
+
+  $('#game-history').click(function(e){
+  e.preventDefault(); // prevents page reloading
+  socket.emit('get game history', {});
+  return false;
+});
 
   $('#pop-up-close').click(function(e){
-    e.preventDefault(); // prevents page reloading
-    $('#pop-up').fadeOut();
-    return false;
-  });
+  e.preventDefault(); // prevents page reloading
+  $('#pop-up').fadeOut();
+  return false;
+});
 
   $('#help-link').click(function(e) {
     e.preventDefault();
@@ -141,23 +146,22 @@ $(function () {
   });
 
   $('#chatbox').submit(function(e){
-    e.preventDefault(); // prevents page reloading
-    socket.emit('chat message', $('#m').val());
-    $('#m').val('');
-    return false;
-  });
+  e.preventDefault(); // prevents page reloading
+  socket.emit('chat message', $('#m').val());
+  $('#m').val('');
+  return false;
+});
 
   $('#restart-game').click(function(e){
-    e.preventDefault(); // prevents page reloading
-    $('#center-msg').html('');
-    $('#restart-game').fadeOut();
-    $('#center-msg').html('Waiting...');
-    for(let i = 0; i < 4; i++) {
-      playerObjects[i].html('');
-    }
-    socket.emit('restart game', {});
-    return false;
-  });
+  e.preventDefault(); // prevents page reloading
+  $('#restart-game').fadeOut();
+  printMsg('Waiting...');
+  for(let i = 0; i < 4; i++) {
+    playerObjects[i].html('');
+  }
+  socket.emit('restart game', {});
+  return false;
+});
 
   socket.on('registration error', function() {
     $('#registration-error').text('That username is taken!');
@@ -217,7 +221,8 @@ $(function () {
     $('#view-plays').css('display','none');
     $('#start-game').css('display','none');
     $('#edit-settings').css('display','none');
-    $('.center-msg').html('Waiting...');
+    printMsg('Waiting...');
+    playerId = 5;
     playerType = 'spectator';
   });
 
@@ -230,6 +235,7 @@ $(function () {
   });
 
   socket.on('resetup player', function(data) {
+    $('#edit-settings').fadeOut();
     $('#start-page').fadeOut();
     $('#start-game').css('display','none');
     $('.hand-cards').html(cardsToString(data.hand, 'checkbox'));
@@ -240,7 +246,7 @@ $(function () {
     $('#trump-suit').html('<img src="' + suitSrc[tr.trumpSuit] + '"">');
     $('#trump-rank').html(valueToDisplay[tr.trumpValue]);
     $('#points').html(tr.points);
-    $('#center-msg').html('');
+    clearMsg();
     $('#start-game').fadeOut();
     fullDeck = tr.deck;
     $('div.play-hand > h2').fadeIn();
@@ -254,7 +260,7 @@ $(function () {
     for(let i = 0; i < 4; i++) {
       const position = (i - playerId + 3) % 4;
       if(playerType === 'player' && position !== 3) {
-          playerNames[position].html(tr.users[i]);
+        playerNames[position].html(tr.users[i]);
       } else if(playerType === 'spectator') {
         playerNames[(i + 3) % 4].html(tr.users[i]);
       }
@@ -263,16 +269,15 @@ $(function () {
 
   socket.on('game message', function(data){
     let name;
-    let msg;
+    let clss;
     if(data.winner === playerId) {
       name = 'You';
-      msg = '<div class="green">';
+      clss = 'green';
     } else {
       name = data.user;
-      msg = '<div>';
+      clss = undefined;
     }
-    msg += '<p>' + name+' won the round!</p><h4>'+data.subtitle+'</h4></div>';
-    $('#center-msg').html(msg);
+    printMsg(name + ' won the round!', data.subtitle, clss);
   });
 
   socket.on('chat message', function(msg){
@@ -290,6 +295,11 @@ $(function () {
       str += 'No plays were made yet!';
     }
     $('#pop-up-inner').html(str);
+    $('#pop-up').fadeIn();
+  });
+
+  socket.on('display games', function(games) {
+    $('#pop-up-inner').html(games);
     $('#pop-up').fadeIn();
   });
 
@@ -320,20 +330,18 @@ $(function () {
     $('#hand-submit').prop('disabled', false);
     currentSuit = data.suit;
     if(data.plays < 1) {
-      // starter = true;
     } else {
-      $('#center-msg').html("<p class='green'>It's your turn!</p>");
-      // starter = false;
+      printMsg("It's your turn!", "", "green");
     }
   });
 
   socket.on('next turn', function(data) {
     if(data.turn !== playerId) {
-      $('#center-msg').html("<p>It's " + data.usrnm + "'s turn</p>");
+      printMsg("It's " + data.usrnm + "'s turn");
     }
   });
 
-   socket.on('new round', function(pt) {
+  socket.on('new round', function(pt) {
     $('#points').html(pt);
   });
 
@@ -346,8 +354,8 @@ $(function () {
   });
 
   socket.on('end game', function(game){
-    $('#center-msg').html(game.msg);
-    if(!game.finish) {
+    printMsg(game.msg, game.subtitle);
+    if(!game.finish && playerType === 'player') {
       $('#restart-game').fadeIn();
     }
   });
@@ -363,14 +371,37 @@ $(function () {
     if(names.length === 1) {
       word = 'has';
     } 
-    $('#center-msg').html('<p>Game paused.</p><h4>' + arrToList(names) + ' ' + word + ' left.</h4>');
+    printMsg('Game paused.', arrToList(names) + ' ' + word + ' left.');
   });
 
   socket.on('unpause game', function(name) {
-    $('#center-msg').html('');
+    clearMsg();
   });
 
 });
+
+function printMsg(title, subtitle, clss) {
+  let msg = '';
+  if(clss !== undefined) {
+    msg += '<div class="'+clss+'">';
+  }
+  msg += "<p>" + title + "</p>";
+  if(subtitle !== undefined) {
+    msg += "<h4>" + subtitle + "</h4>";
+  }
+  if(clss !== undefined) {
+    msg += '</div>';
+  }
+  $('#center-msg').html(msg);
+}
+
+function clearMsg() {
+  $('#center-msg').html('');
+}
+
+function printChat(msg, clss) {
+  $('#messages').append($('<li class="' + clss + '">').text(msg));
+}
 
 function arrToList(arr) {
   let msg = '';
@@ -438,3 +469,5 @@ function checkForSuit(cards, suit) {
   }
   return false;
 }
+
+

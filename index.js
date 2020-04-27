@@ -17,6 +17,7 @@ const fullDeck = [];
 let plays = [];
 const connections = [];
 let startCount = [];
+let gameIndex = 1;
 
 app.use(express.static(__dirname + '/public'));
 app.use(bodyParser.json());
@@ -37,12 +38,15 @@ function endGame(game) {
 	game.gameOver(io);
 
 	new GameSchema({
+		roundIndex: gameIndex,
 		rounds: plays,
 		teams: game.teams,
 		points: game.points,
 		trumpSuit: game.trumpSuit,
 		trumpValue: game.trumpValue,
-		winner: game.winner
+		winner: game.winner,
+		declarer: game.declarers,
+		starter: game.players[game.playerIds[game.starter]].username
 	}).save(function(err){
 		if(err) {
 			console.log(err);
@@ -61,6 +65,31 @@ function endGame(game) {
 			}
 		});
 	}
+}
+
+function gamesToTable(data) {
+	if(data.length <= 0) {
+		return 'No games yet!';
+	}
+	let teamNames = [];
+	teamNames[0] = data[0].teams[0].usernames[0] + ' & ' + data[0].teams[0].usernames[1];
+	teamNames[1] = data[0].teams[1].usernames[0] + ' & ' + data[0].teams[1].usernames[1];
+	let html = '<h1>Game History</h1><h3 class="yellow">The team that was the Declarer each round is in yellow.</h3><br/><table><tr><th>Round</th><th>' + teamNames[0] + '</th><th>' + teamNames[1] + '</th><th>Starter</th><th>Trump Suit</th><th>Points</th><th>Winner</th></tr>';
+	data.forEach(function(ele) {
+		let classes = [];
+		classes[ele.declarer] = 'winner';
+		html += '<tr>';
+		html += '<td>' + ele.roundIndex + '</td>';
+		html += '<td class="' + classes[0] + '"">' + ele.teams[0].score + '</td>';
+		html += '<td class="' + classes[1] + '"">' + ele.teams[1].score + '</td>';
+		html += '<td>' + ele.starter + '</td>';
+		html += '<td>' + ele.trumpSuit + '</td>';
+		html += '<td>' + ele.points + '</td>';
+		html += '<td>' + teamNames[ele.winner] + '</td>';
+		html += '</tr>'
+	});
+	html += '</table>';
+	return html;
 }
 
 function startServer(fullDeck) {
@@ -143,7 +172,9 @@ function startServer(fullDeck) {
 			if(startCount.length >= 4) {
 				startCount.splice(0, startCount.length);
 				Play.deleteMany({}, function(err, result) {
-					game.startGame(io);
+					GameSchema.deleteMany({}, function(err, result) {
+						game.startGame(io);
+					});
 				});
 			} else if(startCount.length === 1) {
 				game.editSettings(settings);
@@ -165,6 +196,14 @@ function startServer(fullDeck) {
 				game.players[socket.id].emit('display plays', game.cardsToRound(plays));
 			});
 		});
+		socket.on('get game history', function(id){
+			let games = [];
+			GameSchema.find({}, function(err, data) {
+				games = data;
+				const msg = gamesToTable(games);
+				game.players[socket.id].emit('display games', msg);
+			});
+		});
 		socket.on('submit hand', function(result) {
 			const pl = new Play({
 				username: game.getUsername(result.id),
@@ -178,7 +217,6 @@ function startServer(fullDeck) {
 				}
 			});
 			game.submitHand(socket, io, result.cards);
-			// if(plays.length >= 4) {
 			if(game.checkGameOver(result.id)) {
 				for(let i = 0; i < 4; i++) {
 					game.players[game.playerIds[i]].hand = [];
@@ -192,10 +230,10 @@ function startServer(fullDeck) {
 				startCount.push(socket.id);
 			}
 			if(startCount.length >= 4) {
+				gameIndex++;
 				startCount.splice(0, startCount.length);
 				Play.deleteMany({}, function(err, result) {
 					game.restartGame(io);
-					// util.loadData(dataPath, fullDeck, game.restartGame, io);
 				});
 			}
 		});
@@ -215,7 +253,6 @@ function startServer(fullDeck) {
 					io.emit('pause game', game.left);
 				}
 			}
-		// console.log(socket.username);
 		});
 	});
 }
