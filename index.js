@@ -4,7 +4,7 @@ const app = express();
 const path = require('path');
 const http = require('http').createServer(app);
 const io = require('socket.io')(http);
-const util = require('./util');
+const assets = require('./assets');
 const Game = require('./game');
 const bodyParser = require('body-parser');
 require('./db');
@@ -54,13 +54,11 @@ function endGame(game) {
 	});
 
 	for(let i = 0; i < 2; i++) {
-		let points;
 		const usr = game.players[game.playerIds[game.teams[game.winner].members[i]]];
 		User.findOne({username: usr.username}, function(err, doc) {
 			if (err) return handleError(err);
 			if(doc !== null) {
 				doc.points += game.ranks;
-				points = doc.points;
 				doc.save();
 			}
 		});
@@ -204,6 +202,9 @@ function startServer(fullDeck) {
 				game.players[socket.id].emit('display games', msg);
 			});
 		});
+		socket.on('submit swap cards', function(result) {
+			game.swapCards(socket, io, result);
+		});
 		socket.on('submit hand', function(result) {
 			const pl = new Play({
 				username: game.getUsername(result.id),
@@ -221,6 +222,7 @@ function startServer(fullDeck) {
 				for(let i = 0; i < 4; i++) {
 					game.players[game.playerIds[i]].hand = [];
 				}
+				game.revealDiscard(io);
 				endGame(game);
 				game.updateScores();
 			}
@@ -258,4 +260,4 @@ function startServer(fullDeck) {
 }
 
 const dataPath = path.join(__dirname, 'data.json');
-util.loadData(dataPath, fullDeck, startServer);
+assets.loadData(dataPath, fullDeck, startServer);

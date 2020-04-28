@@ -298,6 +298,29 @@ td {
         line-height: 1.5em;
         margin-bottom: 15px;
     }
+
+    .card-container {
+        border: 1px solid #ddd;
+        margin-left: 0;
+    }
+}
+
+#discard {
+    @extend %pop-up-shared;
+    width: 500px;
+    height: 220px;
+    top: 200px;
+    text-align: center;
+
+    #discard-cards {
+        margin: 15px 0;
+
+        .card-container {
+            border: 1px solid #ddd;
+            margin-left: 10px;
+            text-align: left;
+        }
+    }
 }
 
 %close-window-shared {

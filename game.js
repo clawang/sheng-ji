@@ -37,6 +37,7 @@ class Game {
     this.connections = [];
     this.left = [];
     this.set = false;
+    this.discard = [];
   }
 
   getUsername(id) {
@@ -134,8 +135,8 @@ class Game {
       io.emit('setup game', {trumpSuit: this.trumpSuit, trumpValue: this.trumpValue, points: this.points, deck: this.fullDeck, teams: this.teams, declarers: this.declarers, users: this.users});
       if(this.left.length <= 0) {
         io.emit('unpause game', {});
-        io.emit('next turn', {usrnm: this.players[this.playerIds[this.turn]].username, turn: this.turn});
-        this.players[this.playerIds[this.turn]].emit('your turn', {plays: this.currentRound.played});
+        io.emit('next turn', {usrnm: this.players[this.playerIds[this.turn]].username, turn: this.turn, plays: this.currentRound.played, roundIndex: this.roundIndex});
+        // this.players[this.playerIds[this.turn]].emit('your turn', {plays: this.currentRound.played});
         this.gameState = 'playing';
       } else {
         io.emit('pause game', this.left);
@@ -219,7 +220,11 @@ class Game {
   }
 
   startUser(socket) {
-    socket.hand = this.deck.splice(0, 13);
+    if(socket.number === this.starter) {
+      socket.hand = this.deck.splice(0, 18);
+    } else {
+      socket.hand = this.deck.splice(0, 12);
+    }
     socket.hand.sort(this.sortFunction);
   }
 
@@ -250,13 +255,20 @@ class Game {
       this.trumpSuit = suits[Math.floor(Math.random() * 4)];
     }
     this.adjustValues(this.fullDeck, this.trumpValue, this.trumpSuit);
-    io.emit('setup game', {trumpSuit: this.trumpSuit, trumpValue: this.trumpValue, points: this.points, deck: this.fullDeck, teams: this.teams, declarers: this.declarers, users: this.users});
+    io.emit('setup game', {trumpSuit: this.trumpSuit, trumpValue: this.trumpValue, points: this.points, deck: this.fullDeck, teams: this.teams, declarers: this.declarers, users: this.users})
+    this.turn = this.starter;
     for(let i = 0; i < this.playerIds.length; i++) {
       this.players[this.playerIds[i]].hand.sort(this.sortFunction);
       this.players[this.playerIds[i]].emit('my recent play', {hand: this.players[this.playerIds[i]].hand, cards: []});
     }
-    this.players[this.playerIds[this.turn]].emit('your turn', {});
-    this.currentRound = new Round(this.turn, this.trumpSuit, this.trumpValue);
+    this.players[this.playerIds[this.starter]].emit('swap cards', {});
+  }
+
+  swapCards(socket, io, result) {
+    const cd = this.partitionCards(this.players[socket.id].hand, result.cards);
+    this.discard = cd.slice();
+    this.players[socket.id].emit('my recent play', {hand: this.players[socket.id].hand, cards: []});
+    this.startNewRound(this.starter, io);
   }
 
   submitHand(socket, io, cards) {
@@ -274,8 +286,7 @@ class Game {
     this.turn = (this.turn + 1) % 4;
     this.players[socket.id].emit('my recent play', {hand: this.players[socket.id].hand, cards: cd}); //updates recent play
     if(this.currentRound.played < 4) {
-      io.emit('next turn', {usrnm: this.players[this.playerIds[this.turn]].username, turn: this.turn});
-      this.players[this.playerIds[this.turn]].emit('your turn', {suit: this.currentRound.suit, plays: this.currentRound.played}); //signifies to next player that it's their turn
+      io.emit('next turn', {usrnm: this.players[this.playerIds[this.turn]].username, turn: this.turn, plays: this.currentRound.played, roundIndex: this.roundIndex});
     } else { //end of round
       this.endRound(socket, io);
     }
@@ -294,22 +305,34 @@ class Game {
     io.emit('new round', this.points);
     io.emit('game message', {user: this.players[this.playerIds[this.turn]].username, subtitle: subtitle, winner: winner});
     if(this.players[socket.id].hand.length > 0) { 
-      this.startNewRound(winner); //set up next round if game not over
+      this.startNewRound(winner, io); //set up next round if game not over
     }
   }
 
-  startNewRound(winner) {
-      this.currentRound = new Round(winner, this.trumpSuit, this.trumpValue);
-      this.roundIndex++;
-      this.players[this.playerIds[this.turn]].emit('your turn', {plays: this.currentRound.played});
+  startNewRound(winner, io) {
+    this.currentRound = new Round(winner, this.trumpSuit, this.trumpValue);
+    this.roundIndex++;
+    io.emit('next turn', {usrnm: this.players[this.playerIds[this.turn]].username, turn: this.turn, plays: this.currentRound.played, roundIndex: this.roundIndex});
   }
 
   checkGameOver(id) {
+    // if(this.currentRound.played >= 4) {
     if(this.currentRound.played >= 4 && this.players[this.playerIds[id]].hand.length <= 0) {
       return true;
     } else {
       return false;
     }
+  }
+
+  revealDiscard(io) {
+    let addPoints = 0;
+    if(this.teams[this.opponents].members.includes(this.currentRound.winner)) {
+      this.discard.forEach(function(ele) {
+        this.points += ele.points * 2;
+        addPoints += ele.points * 2;
+      }, this);
+    }
+    io.emit('reveal discard', {discard: this.discard, points: this.points, addPoints: addPoints});
   }
 
   gameOver(io) {

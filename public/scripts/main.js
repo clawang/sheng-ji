@@ -16,6 +16,7 @@ let currentSuit;
 let starter = false;
 let fullDeck = [];
 let playerType = '';
+let switching = false;
 
 $(function () {
   var socket = io();
@@ -82,58 +83,70 @@ $(function () {
   });
 
   $('#start-game').click(function(e){
-  e.preventDefault(); // prevents page reloading
-  if(parseInt($('#setTrumpValue').val()) > 14 || parseInt($('#setTrumpValue').val()) < 2) {
-    printMsg("The trump rank must be between 2 and 14.", "", "red");
-  } else {
-    printMsg('Waiting...');
-    $('#start-game').fadeOut();
-    socket.emit('start game', {trumpValue: $('#setTrumpValue').val(), trumpSuit: $('#setTrumpSuit').val()});
-  }
-  return false;
-});
-
-  $('#hand-form').submit(function(e){
-  e.preventDefault(); // prevents page reloading
-  const arr = $('.card-checkbox:checkbox:checked');
-  const result = [];
-  for(let i = 0; i < arr.length; i++) {
-    result[i] = arr[i].value;
-  }
-  if(result.length > 1) {
-    printMsg("You can only play one card!", "", "red");
-  } else if(result.length < 1) {
-    printMsg("You didn't select a card!", "", "red");
-  }else {
-    const suit = getSuit(result[0]);
-    if(suit === currentSuit || !checkForSuit(currentHand, currentSuit)) { //can only play card if it follows rules
-      $('#hand-submit').prop('disabled', true);
-      clearMsg();
-      socket.emit('submit hand', {cards: result, id: playerId});
+    e.preventDefault(); // prevents page reloading
+    if(parseInt($('#setTrumpValue').val()) > 14 || parseInt($('#setTrumpValue').val()) < 2) {
+      printMsg("The trump rank must be between 2 and 14.", "", "red");
     } else {
-      printMsg("You can't play that card!", "", "red");
+      printMsg('Waiting...');
+      $('#start-game').fadeOut();
+      socket.emit('start game', {trumpValue: $('#setTrumpValue').val(), trumpSuit: $('#setTrumpSuit').val()});
     }
-  }
-  return false;
-});
+    return false;
+  });
+
+  $('#hand-form').submit(function(e) {
+    e.preventDefault(); // prevents page reloading
+    const arr = $('.card-checkbox:checkbox:checked');
+    const result = [];
+    for(let i = 0; i < arr.length; i++) {
+      result[i] = arr[i].value;
+    }
+    if(switching === false) {
+      if(result.length > 1) {
+        printMsg("You can only play one card!", "", "red");
+      } else if(result.length < 1) {
+        printMsg("You didn't select a card!", "", "red");
+      } else {
+        const suit = getSuit(result[0]);
+        if(suit === currentSuit || !checkForSuit(currentHand, currentSuit)) { //can only play card if it follows rules
+          $('#hand-submit').prop('disabled', true);
+          clearMsg();
+          socket.emit('submit hand', {cards: result, id: playerId});
+        } else {
+          printMsg("You can't play that card!", "", "red");
+        }
+      }
+    } else {
+      if(result.length > 6) {
+        printMsg("You can only pick 6 cards!", "", "red");
+      } else if(result.length < 6) {
+        printMsg("You didn't select 6 cards!", "", "red");
+      } else {
+        clearMsg();
+        socket.emit('submit swap cards', {cards: result, id: playerId});
+        switching = false;
+      }
+    }
+    return false;
+  });
 
   $('#view-plays').click(function(e){
-  e.preventDefault(); // prevents page reloading
-  socket.emit('get plays', playerId);
-  return false;
-});
+    e.preventDefault(); // prevents page reloading
+    socket.emit('get plays', playerId);
+    return false;
+  });
 
   $('#game-history').click(function(e){
-  e.preventDefault(); // prevents page reloading
-  socket.emit('get game history', {});
-  return false;
-});
+    e.preventDefault(); // prevents page reloading
+    socket.emit('get game history', {});
+    return false;
+  });
 
   $('#pop-up-close').click(function(e){
-  e.preventDefault(); // prevents page reloading
-  $('#pop-up').fadeOut();
-  return false;
-});
+    e.preventDefault(); // prevents page reloading
+    $('#pop-up').fadeOut();
+    return false;
+  });
 
   $('#help-link').click(function(e) {
     e.preventDefault();
@@ -146,22 +159,22 @@ $(function () {
   });
 
   $('#chatbox').submit(function(e){
-  e.preventDefault(); // prevents page reloading
-  socket.emit('chat message', $('#m').val());
-  $('#m').val('');
-  return false;
-});
+    e.preventDefault(); // prevents page reloading
+    socket.emit('chat message', $('#m').val());
+    $('#m').val('');
+    return false;
+  });
 
   $('#restart-game').click(function(e){
-  e.preventDefault(); // prevents page reloading
-  $('#restart-game').fadeOut();
-  printMsg('Waiting...');
-  for(let i = 0; i < 4; i++) {
-    playerObjects[i].html('');
-  }
-  socket.emit('restart game', {});
-  return false;
-});
+    e.preventDefault(); // prevents page reloading
+    $('#restart-game').fadeOut();
+    printMsg('Waiting...');
+    for(let i = 0; i < 4; i++) {
+      playerObjects[i].html('');
+    }
+    socket.emit('restart game', {});
+    return false;
+  });
 
   socket.on('registration error', function() {
     $('#registration-error').text('That username is taken!');
@@ -267,6 +280,12 @@ $(function () {
     }
   });
 
+  socket.on('swap cards', function(discard) {
+    switching = true;
+    printMsg('Pick 6 cards to discard.');
+    $('#hand-submit').prop('disabled', false);
+  });
+
   socket.on('game message', function(data){
     let name;
     let clss;
@@ -289,7 +308,7 @@ $(function () {
     let str = '';
     if(plays.length > 0) {
       plays.forEach(function(round) {
-        str += '<div><h2>Round '+(round.index+1)+'</h2><div>'+cardsToString(round.cards, 'div')+'</div>';
+        str += '<div><h2>Round '+round.index+'</h2><div>'+cardsToString(round.cards, 'div')+'</div>';
       });
     } else {
       str += 'No plays were made yet!';
@@ -326,18 +345,15 @@ $(function () {
     }
   });
 
-  socket.on('your turn', function(data) {
-    $('#hand-submit').prop('disabled', false);
-    currentSuit = data.suit;
-    if(data.plays < 1) {
-    } else {
-      printMsg("It's your turn!", "", "green");
-    }
-  });
-
   socket.on('next turn', function(data) {
-    if(data.turn !== playerId) {
+    if(data.turn !== playerId && data.plays > 0) {
       printMsg("It's " + data.usrnm + "'s turn");
+    } else {
+      $('#hand-submit').prop('disabled', false);
+      currentSuit = data.suit;
+      if((data.plays < 1 && data.roundIndex === 1) || data.plays > 0) {
+        printMsg("It's your turn!", "", "green");
+      }
     }
   });
 
@@ -353,6 +369,25 @@ $(function () {
     $('#messages').append($('<li class="disconnection-msg">').text(exit.username + ' has left the game'));
   });
 
+  socket.on('reveal discard', function(data) {
+    $('#discard-cards').html(cardsToString(data.discard, 'div'));
+    let i = 0;
+    data.discard.forEach(function(ele) {
+        if(ele.points > 0) {
+          $('#discard-cards').children().eq(i).addClass('winner');
+        }
+        i++;
+    });
+    if(data.addPoints > 0) {
+      $('#discard-points').text('The opponents gained ' + data.addPoints + ' points!');
+    }
+    $('#discard').fadeIn();
+    $('#points').html(data.points);
+    setTimeout(function(){
+     $('#discard').fadeOut();
+    }, 7000);
+  });
+
   socket.on('end game', function(game){
     printMsg(game.msg, game.subtitle);
     if(!game.finish && playerType === 'player') {
@@ -361,7 +396,6 @@ $(function () {
   });
 
   socket.on('update score', function(pts){
-    console.log(pts);
     $('#my-score').html(pts);
   });
 
@@ -469,5 +503,4 @@ function checkForSuit(cards, suit) {
   }
   return false;
 }
-
 

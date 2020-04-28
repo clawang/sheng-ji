@@ -207,7 +207,7 @@ td {
   padding: 50px 10px;
 }
 
-#instructions, #pop-up {
+#discard, #instructions, #pop-up {
   z-index: 50;
   position: absolute;
   margin: 50px auto;
@@ -257,6 +257,25 @@ td {
 #instructions p {
   line-height: 1.5em;
   margin-bottom: 15px;
+}
+#instructions .card-container {
+  border: 1px solid #ddd;
+  margin-left: 0;
+}
+
+#discard {
+  width: 500px;
+  height: 220px;
+  top: 200px;
+  text-align: center;
+}
+#discard #discard-cards {
+  margin: 15px 0;
+}
+#discard #discard-cards .card-container {
+  border: 1px solid #ddd;
+  margin-left: 10px;
+  text-align: left;
 }
 
 #instructions-close, #pop-up-close {

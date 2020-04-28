@@ -21,13 +21,13 @@ class Card {
   }
 }
 
-class Team {
-  constructor(ids, score) {
-    this.ids = ids;
-    this.score = score;
-  }
+// class Team {
+//   constructor(ids, score) {
+//     this.ids = ids;
+//     this.score = score;
+//   }
 
-}
+// }
 
 function loadData(filePath, allData, cb, arg) {
   let arr = [];
@@ -48,6 +48,6 @@ function loadData(filePath, allData, cb, arg) {
 
 module.exports = {
 	Card: Card,
-  Team: Team,
+  // Team: Team,
 	loadData: loadData
 }
