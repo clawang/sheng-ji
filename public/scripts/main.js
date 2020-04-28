@@ -22,22 +22,20 @@ $(function () {
   var socket = io();
 
   $( document ).ready(function() {
-    $('button').css('cursor', 'pointer');
-    $('#declarers').css('cursor', 'pointer');
-    $('#opponents').css('cursor', 'pointer');
+    $('.hand-cards > label').css('cursor', 'not-allowed');
   });
 
   $('#create-user').submit(function(e){
-  e.preventDefault(); // prevents page reloading
-  socket.emit('add user', {username: $('#create-user > #username').val(), password: $('#create-user > #password').val()});
-  return false;
-});
+    e.preventDefault(); // prevents page reloading
+    socket.emit('add user', {username: $('#create-user > #username').val(), password: $('#create-user > #password').val()});
+    return false;
+  });
 
   $('#login-user').submit(function(e){
-  e.preventDefault(); // prevents page reloading
-  socket.emit('login', {username: $('#login-user > #username').val(), password: $('#login-user > #password').val()});
-  return false;
-});
+    e.preventDefault(); // prevents page reloading
+    socket.emit('login', {username: $('#login-user > #username').val(), password: $('#login-user > #password').val()});
+    return false;
+  });
 
   $('#login-link').click(function(e) {
     e.preventDefault();
@@ -110,6 +108,7 @@ $(function () {
         const suit = getSuit(result[0]);
         if(suit === currentSuit || !checkForSuit(currentHand, currentSuit)) { //can only play card if it follows rules
           $('#hand-submit').prop('disabled', true);
+          $('.hand-cards > label').css('cursor', 'not-allowed');
           clearMsg();
           socket.emit('submit hand', {cards: result, id: playerId});
         } else {
@@ -284,6 +283,7 @@ $(function () {
     switching = true;
     printMsg('Pick 6 cards to discard.');
     $('#hand-submit').prop('disabled', false);
+    $('.hand-cards > label').css('cursor', 'pointer');
   });
 
   socket.on('game message', function(data){
@@ -350,6 +350,7 @@ $(function () {
       printMsg("It's " + data.usrnm + "'s turn");
     } else {
       $('#hand-submit').prop('disabled', false);
+      $('.hand-cards > label').css('cursor', 'pointer');
       currentSuit = data.suit;
       if((data.plays < 1 && data.roundIndex === 1) || data.plays > 0) {
         printMsg("It's your turn!", "", "green");
