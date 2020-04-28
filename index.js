@@ -14,9 +14,9 @@ const Play = mongoose.model('Play');
 const GameSchema = mongoose.model('Game');
 
 const fullDeck = [];
-let plays = [];
-const connections = [];
-let startCount = [];
+const plays = [];
+// const connections = [];
+const startCount = [];
 let gameIndex = 1;
 
 app.use(express.static(__dirname + '/public'));
@@ -56,7 +56,7 @@ function endGame(game) {
 	for(let i = 0; i < 2; i++) {
 		const usr = game.players[game.playerIds[game.teams[game.winner].members[i]]];
 		User.findOne({username: usr.username}, function(err, doc) {
-			if (err) return handleError(err);
+			if (err) {console.log(err);}
 			if(doc !== null) {
 				doc.points += game.ranks;
 				doc.save();
@@ -69,12 +69,12 @@ function gamesToTable(data) {
 	if(data.length <= 0) {
 		return 'No games yet!';
 	}
-	let teamNames = [];
+	const teamNames = [];
 	teamNames[0] = data[0].teams[0].usernames[0] + ' & ' + data[0].teams[0].usernames[1];
 	teamNames[1] = data[0].teams[1].usernames[0] + ' & ' + data[0].teams[1].usernames[1];
 	let html = '<h1>Game History</h1><h3 class="yellow">The team that was the Declarer each round is in yellow.</h3><br/><table><tr><th>Round</th><th>' + teamNames[0] + '</th><th>' + teamNames[1] + '</th><th>Starter</th><th>Trump Suit</th><th>Points</th><th>Winner</th></tr>';
 	data.forEach(function(ele) {
-		let classes = [];
+		const classes = [];
 		classes[ele.declarer] = 'winner';
 		html += '<tr>';
 		html += '<td>' + ele.roundIndex + '</td>';
@@ -84,7 +84,7 @@ function gamesToTable(data) {
 		html += '<td>' + ele.trumpSuit + '</td>';
 		html += '<td>' + ele.points + '</td>';
 		html += '<td>' + teamNames[ele.winner] + '</td>';
-		html += '</tr>'
+		html += '</tr>';
 	});
 	html += '</table>';
 	return html;
@@ -124,26 +124,24 @@ function startServer(fullDeck) {
 		});
 		socket.on('login', function(user){
 			User.findOne({username: user.username}, function (err, userDoc) {
-			  if (err) return handleError(err);
-			  if (userDoc !== null) {
-			  	if(userDoc.password === user.password) {
-			  		const status = game.checkUsers(user.username, socket, io);
-			  		if(status === 0) {
-			  			game.addUser(socket, io, user.username, userDoc.points);
-			  			if(game.set) {
-			  				io.emit('remove settings', {});
-			  			}
-			  		} else if(status === 1) {
-			  			socket.emit('login error', 'You are already logged in!');
-			  		} else {
-			  			
-			  		}
-			  	} else {
-			  		socket.emit('login error', 'Your password was incorrect. Please try again.');
-			  	}
-			  } else {
-			  		socket.emit('login error', 'No user with that username found.');
-			  }
+				if (err) {console.log(err);}
+				if (userDoc !== null) {
+					if(userDoc.password === user.password) {
+						const status = game.checkUsers(user.username, socket, io);
+						if(status === 0) {
+							game.addUser(socket, io, user.username, userDoc.points);
+							if(game.set) {
+								io.emit('remove settings', {});
+							}
+						} else if(status === 1) {
+							socket.emit('login error', 'You are already logged in!');
+						} 
+					} else {
+						socket.emit('login error', 'Your password was incorrect. Please try again.');
+					}
+				} else {
+					socket.emit('login error', 'No user with that username found.');
+				}
 			});
 		});
 
@@ -170,7 +168,9 @@ function startServer(fullDeck) {
 			if(startCount.length >= 4) {
 				startCount.splice(0, startCount.length);
 				Play.deleteMany({}, function(err, result) {
+					if(err) {console.log(err);}
 					GameSchema.deleteMany({}, function(err, result) {
+						if(err) {console.log(err);}
 						game.startGame(io);
 					});
 				});
@@ -187,14 +187,14 @@ function startServer(fullDeck) {
 				});
 			}
 		});
-		socket.on('get plays', function(id){
+		socket.on('get plays', function(id) {
 			let plays = [];
 			Play.find({username: game.getUsername(id)}, function(err, data) {
 				plays = data;
 				game.players[socket.id].emit('display plays', game.cardsToRound(plays));
 			});
 		});
-		socket.on('get game history', function(id){
+		socket.on('get game history', function() {
 			let games = [];
 			GameSchema.find({}, function(err, data) {
 				games = data;
@@ -235,6 +235,7 @@ function startServer(fullDeck) {
 				gameIndex++;
 				startCount.splice(0, startCount.length);
 				Play.deleteMany({}, function(err, result) {
+					if(err) {console.log(err);}
 					game.restartGame(io);
 				});
 			}

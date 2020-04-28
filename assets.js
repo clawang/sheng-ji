@@ -5,11 +5,11 @@ const suitSrc = {
   hearts: '/img/hearts.png',
   clubs: '/img/clubs.png',
   diamonds: '/img/diamonds.png'
-}
+};
 
 class Card {
   constructor(name, suit, value, display, points, index) {
-  	this.name = name;
+    this.name = name;
     this.suit = suit;
     this.value = value;
     this.display = display;
@@ -21,21 +21,13 @@ class Card {
   }
 }
 
-// class Team {
-//   constructor(ids, score) {
-//     this.ids = ids;
-//     this.score = score;
-//   }
-
-// }
-
 function loadData(filePath, allData, cb, arg) {
-  let arr = [];
+  const arr = [];
   fs.readFile(filePath, (err, jsonData) => {
     if(!err) {
       const data = JSON.parse(jsonData);
       for(let i = 0; i < data.fullDeck.length; i++) {
-      	const card = data.fullDeck[i];
+        const card = data.fullDeck[i];
         arr.push(new Card(card.name, card.suit, card.value, card.display, card.points, i));
       }
       cb(arr, arg);
@@ -48,6 +40,5 @@ function loadData(filePath, allData, cb, arg) {
 
 module.exports = {
 	Card: Card,
-  // Team: Team,
 	loadData: loadData
-}
+};

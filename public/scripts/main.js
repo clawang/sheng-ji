@@ -3,23 +3,22 @@ const suitSrc = {
   hearts: '/img/hearts.png',
   clubs: '/img/clubs.png',
   diamonds: '/img/diamonds.png'
-}
+};
 
 const valueToDisplay = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
 
 const playerObjects = [$('.play-hand-cards'), $('#player-2-cards'), $('#player-3-cards'), $('#player-4-cards')];
-const playerNames = [$('div.player-2 > h2'), $('div.player-3 > h2'), $('div.player-4 > h2'), $('div.play-hand > h2')]
+const playerNames = [$('div.player-2 > h2'), $('div.player-3 > h2'), $('div.player-4 > h2'), $('div.play-hand > h2')];
 
 let playerId;
 let currentHand;
 let currentSuit;
-let starter = false;
 let fullDeck = [];
 let playerType = '';
 let switching = false;
 
 $(function () {
-  var socket = io();
+  const socket = io();
 
   $( document ).ready(function() {
     $('.hand-cards > label').css('cursor', 'not-allowed');
@@ -59,25 +58,12 @@ $(function () {
     socket.emit('user type', 'spectator');
   });
 
-  $('#declarers').click(function(e) {
+  $('#declarers').click(function() {
     socket.emit('set team', 0);
   });
 
-  $('#opponents').click(function(e) {
+  $('#opponents').click(function() {
     socket.emit('set team', 1);
-  });
-
-  $('#create-team').submit(function(e) {
-    e.preventDefault();
-    socket.emit('add team', $('#team-name').val());
-    $('#start-page').fadeOut();
-    return false;
-  });
-
-  $('#new-team-btn').submit(function(e) {
-    e.preventDefault();
-    $('#team').html(createTeamPage);
-    return false;
   });
 
   $('#start-game').click(function(e){
@@ -279,7 +265,7 @@ $(function () {
     }
   });
 
-  socket.on('swap cards', function(discard) {
+  socket.on('swap cards', function() {
     switching = true;
     printMsg('Pick 6 cards to discard.');
     $('#hand-submit').prop('disabled', false);

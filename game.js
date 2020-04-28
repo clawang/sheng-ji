@@ -2,6 +2,14 @@ const Round = require('./round');
 
 const suits = ['spades', 'hearts', 'clubs', 'diamonds'];
 
+const suitValues = {
+  spades: 0,
+  hearts: 1,
+  clubs: 2,
+  diamonds: 3,
+  trump: 4
+};
+
 class Game {
 
   constructor(fullDeck) {
@@ -12,13 +20,13 @@ class Game {
       usernames: [],
       score: 2,
       newScore: 2
-    }
+    };
     this.teams[1]= {
       members: [1, 3],
       usernames: [],
       score: 2,
       newScore: 2
-    }
+    };
     this.players = [];
     this.playerIds = [];
     this.fullDeck = fullDeck.sort(() => Math.random() - 0.5);
@@ -27,7 +35,6 @@ class Game {
     this.trumpSuit = 'spades';
     this.trumpValue = 2;
     this.turn = 0;
-    this.currentRound;
     this.roundIndex = 0;
     this.points = 0;
     this.activeUsers = 0;
@@ -53,7 +60,7 @@ class Game {
   }
 
   cardsToRound(arr) {
-    let result = [];
+    const result = [];
     for(let i = 0; i < arr.length; i++) {
       const cd = {};
       cd.cards = [];
@@ -95,7 +102,7 @@ class Game {
   partitionCards(hand, values) {
     const play = [];
     for(let i = 0; i < values.length; i++) {
-      let temp = hand.splice(hand.findIndex(element => element.index === parseInt(values[i])), 1);
+      const temp = hand.splice(hand.findIndex(element => element.index === parseInt(values[i])), 1);
       play.push(temp[0]);
     }
     return play;
@@ -201,7 +208,6 @@ class Game {
   }
 
   setupPlayers() {
-    let i = 0;
     this.connections.forEach(function(ele) {
       if(ele.type === 'player') {
         this.playerIds[ele.number] = ele.id;
@@ -214,7 +220,6 @@ class Game {
         }
         this.startUser(ele);
         ele.emit('setup player', {id: ele.number, username: ele.username, points: ele.points});
-        i++;
       }
     }, this);
   }
@@ -255,7 +260,7 @@ class Game {
       this.trumpSuit = suits[Math.floor(Math.random() * 4)];
     }
     this.adjustValues(this.fullDeck, this.trumpValue, this.trumpSuit);
-    io.emit('setup game', {trumpSuit: this.trumpSuit, trumpValue: this.trumpValue, points: this.points, deck: this.fullDeck, teams: this.teams, declarers: this.declarers, users: this.users})
+    io.emit('setup game', {trumpSuit: this.trumpSuit, trumpValue: this.trumpValue, points: this.points, deck: this.fullDeck, teams: this.teams, declarers: this.declarers, users: this.users});
     this.turn = this.starter;
     for(let i = 0; i < this.playerIds.length; i++) {
       this.players[this.playerIds[i]].hand.sort(this.sortFunction);
@@ -295,7 +300,6 @@ class Game {
   endRound(socket, io) {
     const winner = this.currentRound.getWinner();
     this.turn = winner;
-    let msg = this.players[this.playerIds[this.turn]].username + ' won the round!';
     let subtitle = '';
     if(this.teams[this.opponents].members.includes(winner)) { //add points to total if opponents won
       this.points += this.currentRound.points;
@@ -336,8 +340,6 @@ class Game {
   }
 
   gameOver(io) {
-    let msg;
-    
     if(this.points < 40) {
       this.winner = this.declarers;
     } else {
@@ -361,7 +363,7 @@ class Game {
       this.ranks = 5;
     }
 
-    msg = winner1.username + ' and ' + winner2.username + ' won!';
+    const msg = winner1.username + ' and ' + winner2.username + ' won!';
     const subtitle = 'Their score increases by ' + this.ranks;
 
     winner1.points += this.ranks;
@@ -405,14 +407,6 @@ class Game {
     this.fullDeck = this.fullDeck.sort(() => Math.random() - 0.5);
     this.startGame(io);
   }
-}
-
-const suitValues = {
-  spades: 0,
-  hearts: 1,
-  clubs: 2,
-  diamonds: 3,
-  trump: 4
 }
 
 module.exports = Game;
