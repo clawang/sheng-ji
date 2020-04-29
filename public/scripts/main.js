@@ -130,17 +130,20 @@ $(function () {
   $('#pop-up-close').click(function(e){
     e.preventDefault(); // prevents page reloading
     $('#pop-up').fadeOut();
+    $('#overlay').fadeOut();
     return false;
   });
 
   $('#help-link').click(function(e) {
     e.preventDefault();
     $('#instructions').fadeIn();
+    $('#overlay').fadeIn();
   });
 
   $('#instructions-close').click(function(e) {
     e.preventDefault();
     $('#instructions').fadeOut();
+    $('#overlay').fadeOut();
   });
 
   $('#chatbox').submit(function(e){
@@ -301,11 +304,13 @@ $(function () {
     }
     $('#pop-up-inner').html(str);
     $('#pop-up').fadeIn();
+    $('#overlay').fadeIn();
   });
 
   socket.on('display games', function(games) {
     $('#pop-up-inner').html(games);
     $('#pop-up').fadeIn();
+    $('#overlay').fadeIn();
   });
 
   socket.on('my recent play', function(data) {
@@ -370,9 +375,11 @@ $(function () {
       $('#discard-points').text('The opponents gained ' + data.addPoints + ' points!');
     }
     $('#discard').fadeIn();
+    $('#overlay').fadeIn();
     $('#points').html(data.points);
     setTimeout(function(){
      $('#discard').fadeOut();
+     $('#overlay').fadeOut();
     }, 7000);
   });
 
