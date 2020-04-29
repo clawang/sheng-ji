@@ -1,3 +1,13 @@
+@font-face {
+    font-family: 'Montserrat Light';
+    src: url(fonts/montserrat-light.ttf) format('truetype');
+}
+
+@font-face {
+    font-family: 'Montserrat';
+    src: url(fonts/montserrat-regular.ttf) format('truetype');
+}
+
 $header-font: 'Montserrat', sans-serif;
 $default-font: 'Montserrat Light', sans-serif;
 $green: #0b8b63;
