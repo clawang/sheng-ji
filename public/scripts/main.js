@@ -333,8 +333,9 @@ $(function () {
 
   socket.on('next turn', function(data) {
     if(data.turn !== playerId && data.plays > 0) {
+      $('#hand-submit').prop('disabled', true);
       printMsg("It's " + data.usrnm + "'s turn");
-    } else {
+    } else if(data.turn === playerId) {
       $('#hand-submit').prop('disabled', false);
       $('.hand-cards > label').css('cursor', 'pointer');
       currentSuit = data.suit;
