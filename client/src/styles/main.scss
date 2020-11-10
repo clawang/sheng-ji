@@ -16,6 +16,7 @@ $yellow: #ffc857;
 $game-background-color: #efdecd;
 $small-column: 33%;
 $large-column: 33%;
+$purple: #423643;
 
 * {
     margin: 0;
@@ -33,6 +34,10 @@ html {
 
 .App {
     height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: $purple;
 }
 
 body {
@@ -89,17 +94,17 @@ table {
 th {
     padding: 3px 10px;
     text-align: left;
-    background: #423643;
+    background: $purple;
     color: white;
 }
 
 td {
     padding: 3px 10px;
-    border: 1px solid #423643;
+    border: 1px solid $purple;
 }
 
 #start-page, #game-settings {
-    background: #423643;
+    background: $purple;
     width: 100%;
     height: 100%;
     color: white;
@@ -176,7 +181,7 @@ td {
 
 #team {
     @extend %startscreen-shared;
-    display: none;
+    
 }
 
 #game-settings-player {
@@ -223,10 +228,11 @@ td {
 
 #chat-page {
     display: flex;
-    width: 100%;
-    height: 100%;
+    width: 1200px;
+    height: 700px;
     align-items: stretch;
     background: $game-background-color;
+    border: 2px solid white;
 }
 
 .sidebar {
@@ -405,7 +411,7 @@ td {
         }
         
         h2 {
-            background: #423643;
+            background: $purple;
             color: white;
             padding: 5px 0;
         }
@@ -444,7 +450,7 @@ td {
     button {
         flex: 1;
         width: 20%;
-        background: #423643;
+        background: $purple;
         color: white;
         border: none;
         padding: 10px;
@@ -511,7 +517,7 @@ td {
     
     button {
         padding: 10px 15px;
-        background: #423643;
+        background: $purple;
         color: white;
         border-radius: 25px;
         border: none;
@@ -519,7 +525,7 @@ td {
 
         &:hover {
             background: #e9764f;
-            color: #423643;
+            color: $purple;
         }
     }
 }
@@ -527,7 +533,8 @@ td {
 #header {
     text-align: center;
     width: 100%;
-    padding: 60px 0 20px;
+    padding: 30px 0 10px;
+    flex-shrink: 1;
     
     p {
         font-size: 20px;
@@ -535,10 +542,13 @@ td {
 }
 
 #center-msg {
-    height: 20px;
+    //height: 20px;
 
     p {
         font-family: $header-font;
+        margin: 0;
+        line-height: 20px;
+        margin-block-end: 0;
     }
 }
 
@@ -570,15 +580,16 @@ td {
         select {
             font-family: $header-font;
             width: 100%;
+            font-size: 1.1em;
             appearance: none;
-            padding: 10px;
+            padding: 5px 10px;
             border-radius: 0;
             border: none;
             background: linear-gradient(to bottom, #ffffff 0%,#ffffff 100%);
         }
 
         div.select {
-            padding: 5px;
+            padding: 2px 5px;
             background: #fff;
             width: 50%;
             margin: 0 auto;
@@ -592,12 +603,13 @@ td {
 
 %player-shared {
     padding: 10px;
+    height: 110px;
     text-align: center;
 }
 
 .player-3 {
     @extend %player-shared;
-    width: $large-column;
+    width: 100%;
 }
 
 .player-4 {
@@ -621,15 +633,27 @@ td {
     
     .card-container {
         margin-left: 0 !important;
+        transition: background 0.5s linear;
+
+        p {
+            font-size: 11px;
+            width: 11px;
+        }
+    }
+
+    .card-container.winning {
+        background: #c9d0bb;
+        border: 1px solid $green;
     }
 }
 
 .play {
-    width: $large-column;
+    width: 100%;
 }
 
 .play-hand {
     margin: 0 auto;
+    height: 80px;
     text-align: center;
 
     h2 {
@@ -650,18 +674,40 @@ td {
     margin-bottom: 20px;
 }
 
+.hand-form {
+    width: 100%;
+}
+
 .hand-cards {
     text-align: center;
     padding: 0;
-    overflow: hidden;
-    margin-right: -70px;
+    //overflow: hidden;
+    //margin-right: -70px;
+    position: relative;
+    height: 110px;
+    width: 520px;
+    margin: 0 auto;
     
     .card-container {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        margin: 0;
+        left: 0;
+        top: 0;
+        border: none;
+        //padding-left: 10px;
+        //margin: 0px 0px -0px -60px;
+    }
+
+    label {
+        position: absolute;
         width: 80px;
         height: 107px;
         border-radius: 10px;
-        padding-left: 10px;
-        margin: 0px 0px -0px -60px;
+        overflow: hidden;
+        border: 2px solid $game-background-color;
+        transition: left 0.5s;
     }
 }
 
@@ -700,9 +746,11 @@ td {
 
 .joker {
     text-align: center;
-    font-size: 11px;
+    //font-size: 11px;
     position: absolute;
     left: 5px;
+    width: 15px;
+    word-wrap: break-word;
 }
 
 .card-suit {

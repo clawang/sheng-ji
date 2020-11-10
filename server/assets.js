@@ -1,10 +1,10 @@
 const fs = require('fs');
 
 const suitSrc = {
-  spades: '/img/spades.png',
-  hearts: '/img/hearts.png',
-  clubs: '/img/clubs.png',
-  diamonds: '/img/diamonds.png'
+  spades: '/spades.png',
+  hearts: '/hearts.png',
+  clubs: '/clubs.png',
+  diamonds: '/diamonds.png'
 };
 
 class Card {

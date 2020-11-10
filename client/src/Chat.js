@@ -36,11 +36,11 @@ function Chat(props) {
       <div id="chat-container">
         <div id="messages-container">
           <ul id="messages">
-            {chatContent.length > 0 ? chatContent.map(c => <li className='chat-msg'>{c}</li>) : ''}
+            {chatContent.length > 0 ? chatContent.map((c, i) => <li className='chat-msg' key={i}>{c}</li>) : ''}
           </ul>
         </div>
         <form id="chatbox" action="">
-          <input id="m" autocomplete="off" value={message} onChange={handleChange} /><button onClick={submitChat}>Send</button>
+          <input id="m" autoComplete="off" value={message} onChange={handleChange} /><button onClick={submitChat}>Send</button>
         </form>
       </div>
     </aside>

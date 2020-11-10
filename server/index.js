@@ -102,7 +102,7 @@ function startServer(fullDeck) {
 
 	io.on('connection', function(socket){
 		//console.log('a user connected ' + socket.id);
-		socket.on('add user', function(username){
+		socket.on('add user', function(username, fn){
 			// User.countDocuments({username: user.username}, function(err, count) {
 			// 	if(count > 0) {
 			// 		console.log('A user with that username already exists!');
@@ -120,44 +120,58 @@ function startServer(fullDeck) {
 			// 		game.addUser(socket, io, user.username, 0);
 			// 	}
 			// });
-			game.addUser(socket, io, username, 0);
+			let a = game.connections.findIndex(val => val.username === username);
+			if(a >= 0) {
+				fn('That username is already taken!');
+			} else {
+				game.addUser(socket, io, username, 0);
+				fn('success');
+				console.log(username);
+			}
 		});
 		socket.on('login', function(user){
-			User.findOne({username: user.username}, function (err, userDoc) {
-				if (err) {console.log(err);}
-				if (userDoc !== null) {
-					if(userDoc.password === user.password) {
-						const status = game.checkUsers(user.username, socket, io);
-						if(status === 0) {
-							game.addUser(socket, io, user.username, userDoc.points);
-							if(game.set) {
-								io.emit('remove settings', {});
-							}
-						} else if(status === 1) {
-							socket.emit('login error', 'You are already logged in!');
-						} 
-					} else {
-						socket.emit('login error', 'Your password was incorrect. Please try again.');
-					}
-				} else {
-					socket.emit('login error', 'No user with that username found.');
-				}
-			});
+			// User.findOne({username: user.username}, function (err, userDoc) {
+			// 	if (err) {console.log(err);}
+			// 	if (userDoc !== null) {
+			// 		if(userDoc.password === user.password) {
+			// 			const status = game.checkUsers(user.username, socket, io);
+			// 			if(status === 0) {
+			// 				game.addUser(socket, io, user.username, userDoc.points);
+			// 				if(game.set) {
+			// 					io.emit('remove settings', {});
+			// 				}
+			// 			} else if(status === 1) {
+			// 				socket.emit('login error', 'You are already logged in!');
+			// 			} 
+			// 		} else {
+			// 			socket.emit('login error', 'Your password was incorrect. Please try again.');
+			// 		}
+			// 	} else {
+			// 		socket.emit('login error', 'No user with that username found.');
+			// 	}
+			// });
 		});
 
-		socket.on('user type', function(type) {
+		socket.on('user type', function(type, fn) {
 			if(game.activeUsers >= 4 && type === 'player') {
-				socket.emit('setting error', 'There are already 4 active players.');
+				fn('There are already 4 active players.');
 			} else {
 				game.setUserType(socket, io, type);
+				if(type === 'player') {
+					fn('player');
+					socket.emit('set teams', game.teams);
+				} else {
+					fn('spectator');
+				}
 			}
 		});
 
-		socket.on('set team', function(tm) {
+		socket.on('set team', function(tm, fn) {
 			if(game.teams[tm].usernames.length < 2) {
 				game.setTeam(socket, io, tm);
+				fn('success');
 			} else {
-				socket.emit('team error', 'That team is already full!');
+				fn('That team is already full!');
 			}
 		});
 
@@ -167,15 +181,9 @@ function startServer(fullDeck) {
 			}
 			if(startCount.length >= 4) {
 				startCount.splice(0, startCount.length);
-				Play.deleteMany({}, function(err, result) {
-					if(err) {console.log(err);}
-					GameSchema.deleteMany({}, function(err, result) {
-						if(err) {console.log(err);}
-						game.startGame(io);
-					});
-				});
+				game.startGame(io);
 			} else if(startCount.length === 1) {
-				game.editSettings(settings);
+				//game.editSettings(settings);
 				io.emit('remove settings', {});
 			}
 		});
@@ -206,17 +214,17 @@ function startServer(fullDeck) {
 			game.swapCards(socket, io, result);
 		});
 		socket.on('submit hand', function(result) {
-			const pl = new Play({
-				username: game.getUsername(result.id),
-				round: game.getRound(),
-				cards: result.cards
-			});
-			plays.push(pl);
-			pl.save(function(err){
-				if(err) {
-					console.log(err);
-				}
-			});
+			// const pl = new Play({
+			// 	username: game.getUsername(result.id),
+			// 	round: game.getRound(),
+			// 	cards: result.cards
+			// });
+			// plays.push(pl);
+			// pl.save(function(err){
+			// 	if(err) {
+			// 		console.log(err);
+			// 	}
+			// });
 			game.submitHand(socket, io, result.cards);
 			if(game.checkGameOver(result.id)) {
 				for(let i = 0; i < 4; i++) {

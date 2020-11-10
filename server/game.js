@@ -15,13 +15,13 @@ class Game {
   constructor(fullDeck) {
     this.users = [];
     this.teams = [];
-    this.teams[0]= {
+    this.teams[0]= { //declarers
       members: [0, 2],
       usernames: [],
       score: 2,
       newScore: 2
     };
-    this.teams[1]= {
+    this.teams[1]= { //opponents
       members: [1, 3],
       usernames: [],
       score: 2,
@@ -102,7 +102,8 @@ class Game {
   partitionCards(hand, values) {
     const play = [];
     for(let i = 0; i < values.length; i++) {
-      const temp = hand.splice(hand.findIndex(element => element.index === parseInt(values[i])), 1);
+      let a = hand.findIndex(element => element.index === parseInt(values[i]));
+      const temp = hand.splice(a, 1);
       play.push(temp[0]);
     }
     return play;
@@ -263,23 +264,27 @@ class Game {
     io.emit('setup game', {trumpSuit: this.trumpSuit, trumpValue: this.trumpValue, points: this.points, deck: this.fullDeck, teams: this.teams, declarers: this.declarers, users: this.users});
     this.turn = this.starter;
     for(let i = 0; i < this.playerIds.length; i++) {
+      console.log(this.players[this.playerIds[i]].number);
       this.players[this.playerIds[i]].hand.sort(this.sortFunction);
-      this.players[this.playerIds[i]].emit('my recent play', {hand: this.players[this.playerIds[i]].hand, cards: []});
+      this.players[this.playerIds[i]].emit('my hand', {hand: this.players[this.playerIds[i]].hand, playerId: this.players[this.playerIds[i]].number});
+      this.players[this.playerIds[i]].emit('set playerId', this.players[this.playerIds[i]].number);
     }
-    this.players[this.playerIds[this.starter]].emit('swap cards', {});
+    this.players[this.playerIds[this.starter]].emit('swap cards', this.starter);
   }
 
   swapCards(socket, io, result) {
     const cd = this.partitionCards(this.players[socket.id].hand, result.cards);
     this.discard = cd.slice();
-    this.players[socket.id].emit('my recent play', {hand: this.players[socket.id].hand, cards: []});
+    // this.players[socket.id].emit('my recent play', {hand: this.players[socket.id].hand, cards: []});
     this.startNewRound(this.starter, io);
   }
 
   submitHand(socket, io, cards) {
     const cd = this.partitionCards(this.players[socket.id].hand, cards);
+    console.log(cd);
     if(this.currentRound.played < 1) {
       this.currentRound.setSuit(cd[0].adjSuit);
+      io.emit('new round', this.currentRound.started);
     } 
     io.emit('hand played', {
       cards: cd,
@@ -289,11 +294,11 @@ class Game {
     });
     this.currentRound.addCard(cd, this.players[socket.id].number);
     this.turn = (this.turn + 1) % 4;
-    this.players[socket.id].emit('my recent play', {hand: this.players[socket.id].hand, cards: cd}); //updates recent play
+    //this.players[socket.id].emit('my recent play', {hand: this.players[socket.id].hand, cards: cd}); //updates recent play
     if(this.currentRound.played < 4) {
-      io.emit('next turn', {usrnm: this.players[this.playerIds[this.turn]].username, turn: this.turn, plays: this.currentRound.played, roundIndex: this.roundIndex});
+      io.emit('next turn', {usrnm: this.players[this.playerIds[this.turn]].username, turn: this.turn, plays: this.currentRound.played, roundIndex: this.roundIndex, suit: this.currentRound.suit});
     } else { //end of round
-      this.endRound(socket, io);
+      this.endRound(socket, io); 
     }
   }
 
@@ -306,8 +311,9 @@ class Game {
       subtitle += ' The opponents got ' + this.currentRound.points + ' points.';
     }
     this.rounds.push(this.currentRound);
-    io.emit('new round', this.points);
-    io.emit('game message', {user: this.players[this.playerIds[this.turn]].username, subtitle: subtitle, winner: winner});
+    io.emit('win round', winner);
+    io.emit('update points', this.points);
+    //io.emit('game message', {user: this.players[this.playerIds[this.turn]].username, subtitle: subtitle, winner: winner});
     if(this.players[socket.id].hand.length > 0) { 
       this.startNewRound(winner, io); //set up next round if game not over
     }
@@ -316,7 +322,7 @@ class Game {
   startNewRound(winner, io) {
     this.currentRound = new Round(winner, this.trumpSuit, this.trumpValue);
     this.roundIndex++;
-    io.emit('next turn', {usrnm: this.players[this.playerIds[this.turn]].username, turn: this.turn, plays: this.currentRound.played, roundIndex: this.roundIndex});
+    io.emit('next turn', {usrnm: this.players[this.playerIds[this.turn]].username, turn: this.turn, plays: this.currentRound.played, roundIndex: this.roundIndex, suit: ''});
   }
 
   checkGameOver(id) {

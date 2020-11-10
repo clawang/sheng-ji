@@ -16,6 +16,13 @@ function App() {
     username: '',
     loggedIn: false
   });
+  const [gameDetails, setGame] = useState({
+    trumpSuit: '',
+    trumpRank: 2,
+    points: 0
+  });
+
+  console.log(gameDetails);
 
   const initialize = () => {
     return createDeck();
@@ -23,46 +30,52 @@ function App() {
 
   useEffect(() => {
     setDeck(initialize());
+    socket.on('setup game', function(data) {
+      console.log(data);
+      setGame({trumpSuit: data.trumpSuit, trumpRank: data.trumpValue, points: data.points});
+    });
+    socket.on('update points', function(pts) {
+      setGame(gameDetails => {return {...gameDetails, points: pts}});
+    })
   }, [setDeck]);
 
-  const changeUsername = (evt) => {
-    setLogin({username: evt.target.value, loggedIn: login.loggedIn});
+  //console.log(gameDetails);
+
+  const finishSetup = () => {
+    setLogin({username: login.username, loggedIn: true});
   }
 
-  const loginSubmit = (evt) => {
-    evt.preventDefault();
-    setLogin({username: login.username, loggedIn: true});
-    console.log(login.username);
-    socket.emit('add user', login.username);
+  const setUsername = (usr) => {
+    setLogin({username: usr, loggedIn: login.loggedIn});
   }
 
   return (
     <div className="App">
-      {login.loggedIn ? '' : <StartPage username={login.username} handleChange={changeUsername} handleClick={loginSubmit} />}
+      {login.loggedIn ? '' : <StartPage username={login.username} socket={socket} setUsername={setUsername} finished={finishSetup} />}
       <div id="chat-page">
         <div className="sidebar">
           <div className="legend">
             <div>
               <h2>Trump Suit</h2>
-              <p id="trump-suit"></p>
+              <p id="trump-suit"><img src={process.env.PUBLIC_URL + "/" + gameDetails.trumpSuit + ".png"} /></p>
             </div>
             <div>
               <h2>Trump Rank</h2>
-              <p id="trump-rank">2</p>
+              <p id="trump-rank">{gameDetails.trumpRank}</p>
             </div>
             <div>
               <h2>Points</h2>
-              <p id="points">0</p>
+              <p id="points">{gameDetails.points}</p>
             </div>
-            <div>
+            {/*<div>
               <h2>Game<br/>History</h2>
               <p><a id="game-history" href="#">View</a></p>
-            </div>
+            </div>*/}
           </div>
           <div id="my-player-stats">
               <h3 id="my-username">{login.username}</h3>
-              <p>My Score: <span id="my-score"></span></p>
-              <p><a href="#" id="help-link" style={{'font-size':'10px'}}>Help</a></p>
+              {/*<p>My Score: <span id="my-score"></span></p>*/}
+              <p><a href="#" id="help-link" style={{fontSize:'10px'}}>Help</a></p>
             </div>
           </div>
         {deck.length > 0 ? <GameSpace deck={deck} socket={socket} /> : '' }
