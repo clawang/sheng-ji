@@ -1,12 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Player from './components/Player';
 import MyPlayer from './components/MyPlayer';
+import Discard from './components/Discard';
 
 function GameSpace(props) {
   const [started, setStarted] = useState(false);
   const [socket, setSocket] = useState(props.socket);
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState({
+    body: '',
+    color: ''
+  });
   const [settingsVisible, setSettings] = useState(true);
+  const [discardVisible, setDiscard] = useState(false);
   const playerId = useRef(-1);
   //let playerId;
 
@@ -15,7 +20,14 @@ function GameSpace(props) {
         playerId.current = id;
       });
       socket.on('remove settings', function() {
-          setSettings(false);
+        setSettings(false);
+      });
+      socket.on('reveal discard', function() {
+        console.log('discard is revealed');
+        setDiscard(true);
+        setTimeout(function() {
+          setDiscard(false);
+        }, 7000);
       });
   }, []);
 
@@ -26,7 +38,7 @@ function GameSpace(props) {
     // if(parseInt($('#setTrumpValue').val()) > 14 || parseInt($('#setTrumpValue').val()) < 2) {
     //   printMsg("The trump rank must be between 2 and 14.", "", "red");
     //} else {
-      setMessage('Waiting...');
+      setMessage({body: 'Waiting...', color: ''});
       setStarted(true);
       socket.emit('start game', {});
     //}
@@ -39,14 +51,10 @@ function GameSpace(props) {
 
   return (
     <div className="game-space">
-      <div id="discard">
-        <h2>Discard Pile</h2>
-        <div id="discard-cards"></div>
-        <p id="discard-points"></p>
-      </div>
+      <Discard socket={socket} visible={discardVisible} />
       <div id="overlay"></div>
       <div id="header">
-        <p id="center-msg">{message}</p>
+        <p className={"center-msg " + message.color}>{message.body}</p>
       </div>
       {playerId.current < 0 ? '' : <Player id="3" socket={socket} main={playerId.current} />}
       {playerId.current < 0 ? '' : <Player id="4" socket={socket} main={playerId.current} />}

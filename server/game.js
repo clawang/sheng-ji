@@ -264,7 +264,6 @@ class Game {
     io.emit('setup game', {trumpSuit: this.trumpSuit, trumpValue: this.trumpValue, points: this.points, deck: this.fullDeck, teams: this.teams, declarers: this.declarers, users: this.users});
     this.turn = this.starter;
     for(let i = 0; i < this.playerIds.length; i++) {
-      console.log(this.players[this.playerIds[i]].number);
       this.players[this.playerIds[i]].hand.sort(this.sortFunction);
       this.players[this.playerIds[i]].emit('my hand', {hand: this.players[this.playerIds[i]].hand, playerId: this.players[this.playerIds[i]].number});
       this.players[this.playerIds[i]].emit('set playerId', this.players[this.playerIds[i]].number);
@@ -315,7 +314,7 @@ class Game {
     io.emit('update points', this.points);
     //io.emit('game message', {user: this.players[this.playerIds[this.turn]].username, subtitle: subtitle, winner: winner});
     if(this.players[socket.id].hand.length > 0) { 
-      this.startNewRound(winner, io); //set up next round if game not over
+      //this.startNewRound(winner, io); //set up next round if game not over
     }
   }
 
@@ -326,8 +325,9 @@ class Game {
   }
 
   checkGameOver(id) {
-    // if(this.currentRound.played >= 4) {
-    if(this.currentRound.played >= 4 && this.players[this.playerIds[id]].hand.length <= 0) {
+    console.log(this.currentRound.played);
+    if(this.currentRound.played >= 4) {
+    //if(this.currentRound.played >= 4 && this.players[this.playerIds[id]].hand.length <= 0) {
       return true;
     } else {
       return false;
@@ -336,13 +336,15 @@ class Game {
 
   revealDiscard(io) {
     let addPoints = 0;
+    let opponents = false;
     if(this.teams[this.opponents].members.includes(this.currentRound.winner)) {
       this.discard.forEach(function(ele) {
         this.points += ele.points * 2;
         addPoints += ele.points * 2;
+        opponents = true;
       }, this);
     }
-    io.emit('reveal discard', {discard: this.discard, points: this.points, addPoints: addPoints});
+    io.emit('reveal discard', {discard: this.discard, points: this.points, addPoints: addPoints, adding: opponents});
   }
 
   gameOver(io) {

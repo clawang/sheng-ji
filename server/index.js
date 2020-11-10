@@ -197,18 +197,18 @@ function startServer(fullDeck) {
 		});
 		socket.on('get plays', function(id) {
 			let plays = [];
-			Play.find({username: game.getUsername(id)}, function(err, data) {
-				plays = data;
-				game.players[socket.id].emit('display plays', game.cardsToRound(plays));
-			});
+			// Play.find({username: game.getUsername(id)}, function(err, data) {
+			// 	plays = data;
+			// 	game.players[socket.id].emit('display plays', game.cardsToRound(plays));
+			// });
 		});
 		socket.on('get game history', function() {
 			let games = [];
-			GameSchema.find({}, function(err, data) {
-				games = data;
-				const msg = gamesToTable(games);
-				game.players[socket.id].emit('display games', msg);
-			});
+			// GameSchema.find({}, function(err, data) {
+			// 	games = data;
+			// 	const msg = gamesToTable(games);
+			// 	game.players[socket.id].emit('display games', msg);
+			// });
 		});
 		socket.on('submit swap cards', function(result) {
 			game.swapCards(socket, io, result);
@@ -227,6 +227,7 @@ function startServer(fullDeck) {
 			// });
 			game.submitHand(socket, io, result.cards);
 			if(game.checkGameOver(result.id)) {
+				console.log('game over');
 				for(let i = 0; i < 4; i++) {
 					game.players[game.playerIds[i]].hand = [];
 				}
@@ -242,10 +243,10 @@ function startServer(fullDeck) {
 			if(startCount.length >= 4) {
 				gameIndex++;
 				startCount.splice(0, startCount.length);
-				Play.deleteMany({}, function(err, result) {
-					if(err) {console.log(err);}
-					game.restartGame(io);
-				});
+				// Play.deleteMany({}, function(err, result) {
+				// 	if(err) {console.log(err);}
+				// 	game.restartGame(io);
+				// });
 			}
 		});
 		socket.on('disconnect', function() {

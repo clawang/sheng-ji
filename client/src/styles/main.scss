@@ -334,7 +334,12 @@ td {
 }
 
 #discard {
-    @extend %pop-up-shared;
+    z-index: 50;
+    position: absolute;
+    margin: 50px auto;
+    background: white;
+    box-shadow: 2px 2px 0px #999;
+    padding: 40px;
     width: 500px;
     height: 220px;
     top: 200px;
@@ -347,6 +352,11 @@ td {
             border: 1px solid #ddd;
             margin-left: 10px;
             text-align: left;
+        }
+
+        .card-container.winning {
+            background: #c9d0bb;
+            border: 1px solid $green;
         }
     }
 }
@@ -541,7 +551,7 @@ td {
     }
 }
 
-#center-msg {
+.center-msg {
     //height: 20px;
 
     p {

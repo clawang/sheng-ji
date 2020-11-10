@@ -36,14 +36,14 @@ function MyPlayer(props) {
       	});
         socket.on('swap cards', function(data) {
         	playDetails.current = {...playDetails.current, switching: true, turn: true, playerId: data};
-        	props.sendMessage("Select 6 cards to discard.");
+        	props.sendMessage({body: "Select 6 cards to discard.", color: 'green'});
         });
         socket.on('next turn', function(data) {
         	if(data.turn === playDetails.current.playerId) {
         		playDetails.current = {...playDetails.current, turn: true, currentSuit: data.suit, plays: data.plays};
-        		props.sendMessage("It's your turn!");
+        		props.sendMessage({body: "It's your turn!",  color: 'green'});
         	} else {
-        		props.sendMessage("It's " + data.usrnm + "'s turn!");
+        		props.sendMessage({body: "It's " + data.usrnm + "'s turn!", color: ''});
         	}
         })
         socket.on('win round', function(win) {
@@ -52,7 +52,6 @@ function MyPlayer(props) {
 			}
         });
         socket.on('new round', function(started) {
-        	console.log(started);
         	if(started !== playDetails.current.playerId) {
         		setPlayCards(playCards => []);
         		setWinner(false);
@@ -99,9 +98,9 @@ function MyPlayer(props) {
         result = result.map(cd => cd.obj);
         if(!playDetails.current.switching) {
             if(result.length > 1) {
-                props.sendMessage("You can only play one card!");
+                props.sendMessage({body: "You can only play one card!", color: 'red'});
             } else if(result.length < 1) {
-                props.sendMessage("You didn't select a card!");
+                props.sendMessage({body: "You didn't select a card!", color: 'red'});
             } else {
                 const suit = result[0].adjSuit;
                 if(suit === playDetails.current.currentSuit || cards.findIndex(cd => cd.obj.adjSuit === playDetails.current.currentSuit) < 0) { //can only play card if it follows rules
@@ -116,16 +115,16 @@ function MyPlayer(props) {
                 		socket.emit('submit hand', {cards: result.map(cd => cd.index), id: playDetails.current.playerId});
                     }, 1000);
                 } else {
-                    props.sendMessage("You can't play that card!");
+                    props.sendMessage({body: "You can't play that card!", color: 'red'});
                 }
             }
         } else {
             if(result.length > 6) {
-                props.sendMessage("You can only pick 6 cards!");
+                props.sendMessage({body: "You can only pick 6 cards!", color: 'red'});
             } else if(result.length < 6) {
-                props.sendMessage("You didn't select 6 cards!");
+                props.sendMessage({body: "You didn't select 6 cards!", color: 'red'});
             } else {
-                props.sendMessage("");
+                props.sendMessage({body: "", color: ''});
                 let indices = [];
                 result.forEach(r => {
                 	let c = cards.findIndex(cd => cd.obj.index === r.index);

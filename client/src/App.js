@@ -22,7 +22,7 @@ function App() {
     points: 0
   });
 
-  console.log(gameDetails);
+  //console.log(gameDetails);
 
   const initialize = () => {
     return createDeck();
@@ -31,7 +31,6 @@ function App() {
   useEffect(() => {
     setDeck(initialize());
     socket.on('setup game', function(data) {
-      console.log(data);
       setGame({trumpSuit: data.trumpSuit, trumpRank: data.trumpValue, points: data.points});
     });
     socket.on('update points', function(pts) {
