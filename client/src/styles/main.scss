@@ -228,17 +228,18 @@ td {
 
 #chat-page {
     display: flex;
-    width: 1200px;
+    width: 1100px;
     height: 700px;
     align-items: stretch;
     background: $game-background-color;
-    border: 2px solid white;
+    border: 1px solid white;
 }
 
 .sidebar {
     background: white;
     height: 100%;
     position: relative;
+    width: 120px;
 }
 
 .legend {
@@ -393,7 +394,7 @@ td {
 }
 
 #chat {
-    width: 20%;
+    width: 220px;
     height: 100%;
     position: relative;
     background: #e6e2e1;
@@ -402,6 +403,7 @@ td {
 
     #current-users {
         background: #fefbf9;
+        border-bottom: 1px solid $purple;
     }
     
     #all-users {
@@ -427,7 +429,7 @@ td {
         }
         
         li {
-            padding: 5px 0;
+            padding: 2px 0 5px;
             list-style-type: none;
         }
         
@@ -491,7 +493,7 @@ td {
 .connection-msg {
     @extend %chat-message-shared;
     color: white;
-    background: $green;
+    background: $green !important;
 }
 
 .hand-msg {
@@ -502,7 +504,7 @@ td {
 .disconnection-msg {
     @extend %chat-message-shared;
     color: white;
-    background: $red;
+    background: $red !important;
 }
 
 .chat-msg {
@@ -516,13 +518,13 @@ td {
 }
 
 .game-space {
-    width: 70%;
+    width: 760px;
     height: 100%;
     background: $game-background-color;
     position: relative;
     display: flex;
     flex-wrap: wrap;
-    flex-grow: 2;
+    flex-grow: 0;
     justify-content: space-around;
     
     button {
@@ -615,6 +617,7 @@ td {
     padding: 10px;
     height: 110px;
     text-align: center;
+    position: relative;
 }
 
 .player-3 {
@@ -643,6 +646,8 @@ td {
     
     .card-container {
         margin-left: 0 !important;
+        position: absolute;
+        transform: translateX(-50%);
         transition: background 0.5s linear;
 
         p {
@@ -663,11 +668,38 @@ td {
 
 .play-hand {
     margin: 0 auto;
-    height: 80px;
+    height: 100px;
     text-align: center;
+    width: 100%;
+    padding: 0 3em;
+    overflow-x: scroll;
 
     h2 {
         display: none;
+    }
+
+    #history-message {
+        opacity: 0;
+        transition: opacity 0.1s;
+        margin-bottom: 5px;
+        font-size: 12px;
+    }
+
+    .card-container {
+        transition: left 0.3s linear;
+        cursor: pointer;
+    }
+
+    .play-hand-cards {
+        margin: 0 auto;
+        min-width: 60px;
+        min-height: 80px;
+        cursor: pointer;
+        position: relative;
+
+        &:hover #history-message {
+            opacity: 0.5;
+        }
     }
 }
 
@@ -684,19 +716,26 @@ td {
     margin-bottom: 20px;
 }
 
+.hand {
+    padding: 0 3em;
+}
+
 .hand-form {
     width: 100%;
 }
 
 .hand-cards {
     text-align: center;
-    padding: 0;
     //overflow: hidden;
     //margin-right: -70px;
     position: relative;
     height: 110px;
-    width: 520px;
+    width: 100%;
     margin: 0 auto;
+
+    &> div {
+        position: absolute;
+    }
     
     .card-container {
         width: 100%;
@@ -718,6 +757,7 @@ td {
         overflow: hidden;
         border: 2px solid $game-background-color;
         transition: left 0.5s;
+        cursor: pointer;
     }
 }
 

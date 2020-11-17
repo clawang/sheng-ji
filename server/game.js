@@ -111,13 +111,18 @@ class Game {
 
   checkUsers(usrnm, socket, io) {
     if(this.users.includes(usrnm)) {
+      let flag = false;
       this.playerIds.forEach(function(ele) {
         if(this.players[ele].username === usrnm && this.players[ele].left) {
           this.returnUser(socket, this.players[ele], io);
-          return 2;
+          flag = true;
         }
       }, this);
-      return 1;
+      if(flag) {
+        return 2;
+      } else {
+        return 1;
+      }
     } else {
       return 0;
     }
@@ -132,6 +137,7 @@ class Game {
     newSocket.number = socket.number;
     newSocket.hand = socket.hand;
     newSocket.type = socket.type;
+    newSocket.prevPlayed = socket.prevPlayed;
     this.players[newSocket.id] = newSocket;
     this.playerIds[newSocket.number] = newSocket.id;
     this.connections.push(newSocket);
@@ -139,13 +145,17 @@ class Game {
     this.left.splice(this.left.findIndex(ele => ele === newSocket.username), 1);
     this.broadcastAddUser(newSocket, io, newSocket.points);
     if(this.gameState === 'paused') {
-      newSocket.emit('resetup player', {hand: newSocket.hand, turn: newSocket.isTurn});
+      //newSocket.emit('resetup player', {hand: newSocket.hand, turn: newSocket.isTurn});
+      newSocket.emit('my hand', {hand: newSocket.hand, playerId: newSocket.number, prevPlayed: newSocket.prevPlayed});
+      newSocket.emit('set playerId', newSocket.number);
       io.emit('setup game', {trumpSuit: this.trumpSuit, trumpValue: this.trumpValue, points: this.points, deck: this.fullDeck, teams: this.teams, declarers: this.declarers, users: this.users});
       if(this.left.length <= 0) {
         io.emit('unpause game', {});
-        io.emit('next turn', {usrnm: this.players[this.playerIds[this.turn]].username, turn: this.turn, plays: this.currentRound.played, roundIndex: this.roundIndex});
-        // this.players[this.playerIds[this.turn]].emit('your turn', {plays: this.currentRound.played});
         this.gameState = 'playing';
+        if(this.currentRound) {
+          io.emit('next turn', {usrnm: this.players[this.playerIds[this.turn]].username, turn: this.turn, plays: this.currentRound.played, roundIndex: this.roundIndex});
+        }
+        // this.players[this.playerIds[this.turn]].emit('your turn', {plays: this.currentRound.played});
       } else {
         io.emit('pause game', this.left);
       }
@@ -202,9 +212,9 @@ class Game {
 
   editSettings(set) {
     this.trumpValue = parseInt(set.trumpValue);
-    this.trumpSuit = String(set.trumpSuit);
-    this.teams[0].score = this.trumpValue;
-    this.teams[1].score = this.trumpValue;
+    this.trumpSuit = set.trumpSuit ? String(set.trumpSuit) : 'random';
+    this.teams[0].newScore = this.trumpValue;
+    this.teams[1].newScore = this.trumpValue;
     this.set = true;
   }
 
@@ -231,12 +241,13 @@ class Game {
     } else {
       socket.hand = this.deck.splice(0, 12);
     }
+    socket.prevPlayed = [];
     socket.hand.sort(this.sortFunction);
   }
 
   removeUser(socket) {
+    this.connections.splice(this.connections.findIndex(ele => ele.username === socket.username), 1);
     if(this.gameState === 'unstarted' || socket.type === 'spectator') {
-      this.connections.splice(this.connections.findIndex(ele => ele.username === socket.username), 1);
       if(socket.type === 'player') {
         this.users.splice(this.users.indexOf(socket.username), 1);
         this.teams[socket.team].usernames.splice(this.teams[socket.team].usernames.indexOf(socket.username), 1);
@@ -247,6 +258,7 @@ class Game {
         this.players[socket.id].left = true;
         this.left.push(socket.username);
         this.gameState = 'paused';
+        this.teams[socket.team].usernames.splice(this.teams[socket.team].usernames.indexOf(socket.username), 1);
       }
       return this.gameState;
     }
@@ -278,9 +290,14 @@ class Game {
     this.startNewRound(this.starter, io);
   }
 
-  submitHand(socket, io, cards) {
-    const cd = this.partitionCards(this.players[socket.id].hand, cards);
-    console.log(cd);
+  submitHand(socket, io, cards, id) {
+    const sock = this.players[socket.id] ? this.players[socket.id] : this.players[this.playerIds[id]];
+    if(!this.players[socket.id]) {
+      this.playerIds[id] = socket.id;
+      sock.id = socket.id;
+    }
+    const cd = this.partitionCards(sock.hand, cards);
+    sock.prevPlayed.concat(cd);
     if(this.currentRound.played < 1) {
       this.currentRound.setSuit(cd[0].adjSuit);
       io.emit('new round', this.currentRound.started);
@@ -288,12 +305,11 @@ class Game {
     io.emit('hand played', {
       cards: cd,
       username: socket.username,
-      id: socket.number,
+      id: id,
       played: this.currentRound.played
     });
-    this.currentRound.addCard(cd, this.players[socket.id].number);
+    this.currentRound.addCard(cd, sock.number);
     this.turn = (this.turn + 1) % 4;
-    //this.players[socket.id].emit('my recent play', {hand: this.players[socket.id].hand, cards: cd}); //updates recent play
     if(this.currentRound.played < 4) {
       io.emit('next turn', {usrnm: this.players[this.playerIds[this.turn]].username, turn: this.turn, plays: this.currentRound.played, roundIndex: this.roundIndex, suit: this.currentRound.suit});
     } else { //end of round
@@ -314,7 +330,7 @@ class Game {
     io.emit('update points', this.points);
     //io.emit('game message', {user: this.players[this.playerIds[this.turn]].username, subtitle: subtitle, winner: winner});
     if(this.players[socket.id].hand.length > 0) { 
-      //this.startNewRound(winner, io); //set up next round if game not over
+      this.startNewRound(winner, io); //set up next round if game not over
     }
   }
 
@@ -325,9 +341,8 @@ class Game {
   }
 
   checkGameOver(id) {
-    console.log(this.currentRound.played);
-    if(this.currentRound.played >= 4) {
-    //if(this.currentRound.played >= 4 && this.players[this.playerIds[id]].hand.length <= 0) {
+    //if(this.currentRound.played >= 3 && this.roundIndex >= 2) {
+    if(this.currentRound.played >= 4 && this.players[this.playerIds[id]].hand.length <= 0) {
       return true;
     } else {
       return false;

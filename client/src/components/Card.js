@@ -6,7 +6,7 @@ function Card(props) {
 
 	useEffect(() => {
 		props.getRef(thisCard);
-	}, []);
+	}, [thisCard]);
 
     return (
         <label style={{left: props.left + 'px'}} ref={thisCard}>

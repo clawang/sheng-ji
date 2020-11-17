@@ -120,13 +120,19 @@ function startServer(fullDeck) {
 			// 		game.addUser(socket, io, user.username, 0);
 			// 	}
 			// });
-			let a = game.connections.findIndex(val => val.username === username);
-			if(a >= 0) {
-				fn('That username is already taken!');
+			const status = game.checkUsers(username, socket, io);
+			console.log(status);
+			if(status < 2) {
+				let a = game.connections.findIndex(val => val.username === username);
+				if(a >= 0) {
+					fn('That username is already taken!');
+				} else {
+					game.addUser(socket, io, username, 0);
+					fn('success');
+					console.log(username);
+				}
 			} else {
-				game.addUser(socket, io, username, 0);
-				fn('success');
-				console.log(username);
+				fn('return');
 			}
 		});
 		socket.on('login', function(user){
@@ -181,9 +187,13 @@ function startServer(fullDeck) {
 			}
 			if(startCount.length >= 4) {
 				startCount.splice(0, startCount.length);
-				game.startGame(io);
+				if(game.roundIndex > 0) {
+					game.restartGame(io);
+				} else {
+					game.startGame(io);
+				}
 			} else if(startCount.length === 1) {
-				//game.editSettings(settings);
+				game.editSettings(settings);
 				io.emit('remove settings', {});
 			}
 		});
@@ -225,7 +235,7 @@ function startServer(fullDeck) {
 			// 		console.log(err);
 			// 	}
 			// });
-			game.submitHand(socket, io, result.cards);
+			game.submitHand(socket, io, result.cards, result.id);
 			if(game.checkGameOver(result.id)) {
 				console.log('game over');
 				for(let i = 0; i < 4; i++) {

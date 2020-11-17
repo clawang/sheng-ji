@@ -20,15 +20,21 @@ function StartPage(props) {
 
     const loginSubmit = (evt) => {
         evt.preventDefault();
-        socket.emit('add user', username, (res) => {
-            if(res === 'success') {
-                props.setUsername(username);
-                setState(1);
-                setMessage('');
-            } else {
-                setMessage(res);
-            }
-        });
+        if(username !== '' && username.replace(/\s/g, '').length) {
+            socket.emit('add user', username, (res) => {
+                if(res === 'success') {
+                    props.setUsername(username);
+                    setState(1);
+                    setMessage('');
+                } else if(res === 'return') {
+                    props.finished();
+                } else {
+                    setMessage(res);
+                }
+            });
+        } else {
+            setMessage('Please enter a valid username.');
+        }
     }
 
     const playerSettings = (type) => {

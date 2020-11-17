@@ -6,9 +6,12 @@ import {TweenMax} from 'gsap';
 import {useReducerWithPromise} from './useStateWithPromise';
 
 function MyPlayer(props) {
-    const [cards, setCards] = useReducerWithPromise(reducer, []);
     const [socket, setSocket] = useState(props.socket);
+    const [cards, setCards] = useReducerWithPromise(reducer, []);
     const [playCards, setPlayCards] = useState([]);
+    const [cardHistory, setCardHistory] = useReducer(reducer, []);
+    const [historyVisible, setHistory] = useState(false);
+    const [mouseOver, setMouse] = useState(false);
     const [winner, setWinner] = useState(false);
     const playDetails = useRef({
         currentSuit: '',
@@ -19,20 +22,23 @@ function MyPlayer(props) {
     });
     const element = useRef(null);
     const playHand = useRef(null);
-
-    //console.log(playCards);
-    //console.log(playDetails);
+    const prevPlay = useRef(null);
 
     useEffect(() => {
     	socket.on('my hand', function(data) {
 	        playDetails.current = {...playDetails.current, playerId: data.playerId};
 	        let temp = [];
-	    	let positions = calculateCardPosition(data.hand.length);
+	    	let positions = calculateCardPosition(0);
 	    	data.hand.forEach((cd, i) => {
 				temp.push({obj: cd, dom: {}, position: positions[i], checked: false});
 			});
 	    	setCards({type: 'replace', items: temp});
-		          //console.log(myDetails.playerId);
+            console.log(data.prevPlayed);
+            if(data.prevPlayed) {
+                data.prevPlayed.forEach(prev => {
+                    setCardHistory({type: 'add', item: {obj: prev, left: prevPlay.current.clientWidth / 2}});
+                });
+            }
       	});
         socket.on('swap cards', function(data) {
         	playDetails.current = {...playDetails.current, switching: true, turn: true, playerId: data};
@@ -53,9 +59,15 @@ function MyPlayer(props) {
         });
         socket.on('new round', function(started) {
         	if(started !== playDetails.current.playerId) {
+                //setCardHistory(cardHistory => cardHistory.concat(playCards));
         		setPlayCards(playCards => []);
         		setWinner(false);
         	}
+        });
+        socket.on('end game', function() {
+            setCardHistory({type: 'clear'});
+            setPlayCards([]);
+            setCards({type: 'clear'});
         });
     }, []);
 
@@ -65,19 +77,34 @@ function MyPlayer(props) {
     	}
     }, [cards.join(",")]);
 
-    const calculateCardPosition = () => {
-    	if(element.current) {
+    const calculateCardPosition = (index) => {
+        let positions = [];
+        let start = 0;
+        if(index === 0) {
     		let n = cards.length;
-	    	let width = n * 40 + 40;
-	    	let total = element.current.clientWidth;
-	    	let start = (total - width) / 2;
-	    	let positions = [];
-	    	for(let i = 0; i < n; i++) {
-	    		positions.push(start + 40*i);
-	    	}
-	    	return positions;
-	    	//console.log(cardPosition);
-	    }
+            let total = element.current ? element.current.clientWidth : 681;
+            let tempInt = (total - 80)/(n-1);
+            let interval = Math.min(tempInt, 80);
+            if (total > n * 80) {
+                start = (total - n * 80) / 2;
+            }
+            for(let i = 0; i < n; i++) {
+                positions.push(start + interval*i);
+            }
+        } else {
+            let n = cardHistory.length;
+            let total = prevPlay.current ? prevPlay.current.clientWidth : 60;
+            let tempInt = (total - 60)/(n-1);
+            let interval = Math.min(tempInt, 70);
+            if (total > n * 70) {
+                start = (total - n * 70) / 2;
+            }
+            for(let i = 0; i < n; i++) {
+                positions.push(start + interval*i + 35);
+            }
+        }
+        
+        return positions;
     }
 
     const checkCard = (i) => {
@@ -86,17 +113,52 @@ function MyPlayer(props) {
     	setCards({type: 'update', index: i, item: temp});
     }
 
-    const getRef = (ref, i) => {
-    	let temp = cards[i];
-    	temp.dom = ref;
-    	setCards({type: 'update', index: i, item: temp});
+    const getRef = (ref, i, type) => {
+        if(type === 'active') {
+            let temp = cards[i];
+            temp.dom = ref;
+    	    setCards({type: 'update', index: i, item: temp});
+        } else {
+            let temp = cardHistory[i];
+            temp.dom = ref;
+            setCardHistory({type: 'update', index: i, item: temp});
+        }
+    }
+
+    const handleMouseEnter = (evt) => {
+        if(!historyVisible) {
+            setMouse(true);
+        }
+    }
+
+    const handleMouseLeave = (evt) => {
+        setMouse(false);
     }
 
     const confirmPlay = (evt) => {
         evt.preventDefault();
         let result = cards.filter(cd => cd.checked);
         result = result.map(cd => cd.obj);
-        if(!playDetails.current.switching) {
+        if(playDetails.current.switching) {
+            if(result.length > 6) {
+                props.sendMessage({body: "You can only pick 6 cards!", color: 'red'});
+            } else if(result.length < 6) {
+                props.sendMessage({body: "You didn't select 6 cards!", color: 'red'});
+            } else {
+                props.sendMessage({body: "", color: ''});
+                let indices = [];
+                result.forEach(r => {
+                    let c = cards.findIndex(cd => cd.obj.index === r.index);
+                    animateCard(c);
+                    indices.push(c);
+                })
+                setTimeout(function(){ 
+                    setCards({type: 'filter', indices: indices});
+                }, 1000);
+                socket.emit('submit swap cards', {cards: result.map(cd => cd.index), id: playDetails.current.playerId});
+                playDetails.current = {...playDetails.current, switching: false};
+            }
+        } else if(playDetails.current.turn) {
             if(result.length > 1) {
                 props.sendMessage({body: "You can only play one card!", color: 'red'});
             } else if(result.length < 1) {
@@ -111,53 +173,32 @@ function MyPlayer(props) {
                     setTimeout(function(){ 
                     	setCards({type: 'remove', index: c})
                 		setPlayCards(playCards => playCards.concat(card));
+                        setCardHistory({type: 'add', item: {obj: card, left: prevPlay.current.clientWidth / 2}});
                 		playDetails.current = {...playDetails.current, turn: false};
                 		socket.emit('submit hand', {cards: result.map(cd => cd.index), id: playDetails.current.playerId});
                     }, 1000);
                 } else {
-                    props.sendMessage({body: "You can't play that card!", color: 'red'});
+                    props.sendMessage({body: "You can't play that card!", subtitle: 'You need to play ' + playDetails.current.currentSuit + '.', color: 'red'});
                 }
-            }
-        } else {
-            if(result.length > 6) {
-                props.sendMessage({body: "You can only pick 6 cards!", color: 'red'});
-            } else if(result.length < 6) {
-                props.sendMessage({body: "You didn't select 6 cards!", color: 'red'});
-            } else {
-                props.sendMessage({body: "", color: ''});
-                let indices = [];
-                result.forEach(r => {
-                	let c = cards.findIndex(cd => cd.obj.index === r.index);
-                	animateCard(c);
-                	indices.push(c);
-                })
-                setTimeout(function(){ 
-                	setCards({type: 'filter', indices: indices});
-                }, 1000);
-                socket.emit('submit swap cards', {cards: result.map(cd => cd.index), id: playDetails.current.playerId});
-                playDetails.current = {...playDetails.current, switching: false};
             }
         }
     }
-
+    
     const animateCard = (c) => {
         let obj = cards[c];
         obj.checked = false;
         setCards({type: 'update', index: c, item: obj});
         let xPos = element.current.clientWidth/2 - 31- cards[c].position;
-        let yPos = (playHand.current.clientHeight + 30) * -1;
+        let yPos = (playHand.current.clientHeight + 13) * -1;
         let card = cards[c].obj;
         TweenMax.to(obj.dom.current, 1, {x: xPos, y: yPos, width: '60px', height: '80px', borderRadius: '5px'});
         return card;
     }
 
-    //onsole.log(cards);
-
     const repositionCards = () => {
-    	let positions = calculateCardPosition(cards);
+    	let positions = calculateCardPosition(0);
     	if(!arraysEqual(positions, cards)) {
 	    	cards.forEach((cd, i) => {
-	    		let xOff = positions[i] - cd.position;
 	    		let temp = cd;
 	    		temp.position = positions[i];
 	    		setCards({type: 'update', index: i, item: temp});
@@ -165,24 +206,56 @@ function MyPlayer(props) {
 	    }
     }
 
+    const revealHistory = (evt) => {
+        if(!historyVisible) {
+            setHistory(true);
+            setMouse(false);
+            setTimeout(function() {
+                let positions = calculateCardPosition(1);
+                cardHistory.forEach((cd, i) => {
+                    let temp = cd;
+                    temp.left = positions[i];
+                    setCardHistory({type: 'update', index: i, item: temp});
+                });
+            }, 10);
+        } else {
+            cardHistory.forEach((cd, i) => {
+                let temp = cd;
+                temp.left = prevPlay.current.clientWidth / 2;
+                setCardHistory({type: 'update', index: i, item: temp});
+                //console.log(cardHistory);
+            });
+            setTimeout(function() {
+                setHistory(false);
+            }, 300);
+        }
+        //console.log(cardHistory);
+    }
+
     return (
         <div style={{width: '100%', display: 'flex', flexWrap: 'wrap'}}>
             <div className="play" ref={playHand}>
                 <div className="play-hand">
-	                <h2>My last play</h2>
-	                <div className="play-hand-cards">
-	                	{playCards.map(c => <CardInactive cd={c} key={c.index} win={winner}/>)}
+                    <p id="history-message" style={mouseOver ? {opacity: 1} : {opacity: 0}}>Click to see play history</p>
+	                <div className="play-hand-cards" onClick={revealHistory} ref={prevPlay} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+	                	{historyVisible ? 
+                            cardHistory.map((c, i) => <CardInactive cd={c.obj} key={c.obj.index + 100} win={false} id={1} left={c.left} />)
+                            :
+                            playCards.map(c => <CardInactive cd={c} key={c.index} win={winner} id={1} left={prevPlay.current.clientWidth / 2}/>)
+                        }
 	                </div>
                 </div>
             </div>
             <div className="my-player">
                 <div className="hand">
-                <form id="hand-form" action="">
-                    <div className="hand-cards" ref={element}>
-                        {cards.map((c, i) => <Card cd={c.obj} checked={c.checked} key={c.obj.index} left={c.position} getRef={(ref) => getRef(ref, i)} handleChange={() => checkCard(i)} />)}
-                    </div>
-                    <button id="hand-submit" disabled={!playDetails.current.turn} onClick={confirmPlay}>Confirm Play</button>
-                </form>
+                    <form id="hand-form" action="">
+                        <div className="hand-cards" ref={element}>
+                            <div>
+                                {cards.map((c, i) => <Card cd={c.obj} checked={c.checked} key={c.obj.index} left={c.position} getRef={(ref) => getRef(ref, i, 'active')} handleChange={() => checkCard(i)} />)}
+                            </div>
+                        </div>
+                        <button id="hand-submit" disabled={!playDetails.current.turn} onClick={confirmPlay}>Confirm Play</button>
+                    </form>
                 </div>
             </div>
         </div>

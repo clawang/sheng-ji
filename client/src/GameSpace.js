@@ -8,9 +8,14 @@ function GameSpace(props) {
   const [socket, setSocket] = useState(props.socket);
   const [message, setMessage] = useState({
     body: '',
+    subtitle: '',
     color: ''
   });
-  const [settingsVisible, setSettings] = useState(true);
+  const [settingsVisible, setSettingsVis] = useState(true);
+  const [settings, setSettings] = useState({
+    rank: 2,
+    suit: null
+  });
   const [discardVisible, setDiscard] = useState(false);
   const playerId = useRef(-1);
   //let playerId;
@@ -19,35 +24,45 @@ function GameSpace(props) {
       socket.on('set playerId', function(id) {
         playerId.current = id;
       });
+      socket.on('my hand', function(data) {
+        setStarted(true);
+      });
       socket.on('remove settings', function() {
-        setSettings(false);
+        setSettingsVis(false);
       });
       socket.on('reveal discard', function() {
-        console.log('discard is revealed');
         setDiscard(true);
         setTimeout(function() {
           setDiscard(false);
         }, 7000);
       });
+      socket.on('end game', function(data) {
+        setMessage({body: data.msg, subtitle: data.subtitle, color: ''});
+        setStarted(false);
+        setSettingsVis(false);
+      });
   }, []);
 
-  //console.log(myDetails);
+  // console.log(playerId);
 
   const startGame = (evt) => {
     evt.preventDefault();
-    // if(parseInt($('#setTrumpValue').val()) > 14 || parseInt($('#setTrumpValue').val()) < 2) {
-    //   printMsg("The trump rank must be between 2 and 14.", "", "red");
-    //} else {
+    if(parseInt(settings.rank) > 14 || parseInt(settings.rank) < 2) {
+      setMessage({body: "The trump rank must be between 2 and 14.", color: "red"});
+    } else {
       setMessage({body: 'Waiting...', color: ''});
       setStarted(true);
-      socket.emit('start game', {});
-    //}
+      socket.emit('start game', {trumpValue: settings.rank, trumpSuit: settings.suit});
+    }
   }
 
-  // let player2 = [3, 45];
-  // let player3 = [22, 23];
-  // let player4 = [33, 12]; 
-  // let player = [13, 14, 15, 16, 17, 18, 1, 24, 25, 26, 34, 8, 20, 5, 9, 38, 40, 29];
+  const changeSuit = (evt) => {
+    setSettings({...settings, suit: evt.target.value});
+  }
+
+  const changeRank = (evt) => {
+    setSettings({...settings, rank: evt.target.value});
+  }
 
   return (
     <div className="game-space">
@@ -55,6 +70,7 @@ function GameSpace(props) {
       <div id="overlay"></div>
       <div id="header">
         <p className={"center-msg " + message.color}>{message.body}</p>
+        <h4 className={message.color}>{message.subtitle}</h4>
       </div>
       {playerId.current < 0 ? '' : <Player id="3" socket={socket} main={playerId.current} />}
       {playerId.current < 0 ? '' : <Player id="4" socket={socket} main={playerId.current} />}
@@ -66,10 +82,10 @@ function GameSpace(props) {
           {settingsVisible ?
             <form id="edit-settings">
               <label>Trump Rank<br/>
-                <input id="setTrumpValue" name="setTrumpValue" autoComplete="off" defaultValue="2" min="2" max="14" type="number"/><br/>
+                <input id="setTrumpValue" name="setTrumpValue" autoComplete="off" defaultValue="2" min="2" max="14" type="number" onChange={changeRank}/><br/>
               </label>
               <label>Trump Suit<br/><div className="select">
-                <select id="setTrumpSuit" name="setTrumpSuit">
+                <select id="setTrumpSuit" name="setTrumpSuit" onChange={changeSuit}>
                   <option value="spades">spades</option>
                   <option value="hearts">hearts</option>
                   <option value="clubs">clubs</option>
@@ -82,7 +98,7 @@ function GameSpace(props) {
             :
             ''
           }
-            <button id="start-game" onClick={startGame}>Start Game</button>
+            <button id="start-game" onClick={startGame}>{playerId.current < 0 ? 'Start Game' : 'Start Next Round'}</button>
           </div>
       }
       </div>

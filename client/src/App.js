@@ -18,11 +18,11 @@ function App() {
   });
   const [gameDetails, setGame] = useState({
     trumpSuit: '',
-    trumpRank: 2,
+    trumpRank: null,
     points: 0
   });
 
-  //console.log(gameDetails);
+  console.log(gameDetails);
 
   const initialize = () => {
     return createDeck();
@@ -56,11 +56,11 @@ function App() {
           <div className="legend">
             <div>
               <h2>Trump Suit</h2>
-              <p id="trump-suit"><img src={process.env.PUBLIC_URL + "/" + gameDetails.trumpSuit + ".png"} /></p>
+              <p id="trump-suit">{gameDetails.trumpSuit ? <img src={process.env.PUBLIC_URL + "/" + gameDetails.trumpSuit + ".png"} /> : ''} </p>
             </div>
             <div>
               <h2>Trump Rank</h2>
-              <p id="trump-rank">{gameDetails.trumpRank}</p>
+              <p id="trump-rank">{gameDetails.trumpRank ? gameDetails.trumpRank : ''}</p>
             </div>
             <div>
               <h2>Points</h2>
