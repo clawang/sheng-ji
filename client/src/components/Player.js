@@ -8,12 +8,14 @@ function Player(props) {
 	const [winner, setWinner] = useState(false);
 	const playerId = useRef(-1);
 	const thisBox = useRef(null);
-	//console.log(cards);
 
 	useEffect(() => {
-		playerId.current =  (props.id - 1 + props.main) % 4;
+		if(props.main < 0) {
+			playerId.current = props.id - 1;
+		} else {
+			playerId.current =  (props.id - 1 + props.main) % 4;
+		}
 		socket.on('hand played', function(data) {
-			console.log('receiving hand played ' + data.id);
 			if(data.id === playerId.current) {
 				setCards(data.cards);
 				setUsername(data.username);
@@ -44,10 +46,5 @@ function Player(props) {
         </div>
     );
 }
-
-// const Player = React.memo(props => {
-//   	console.log("Greeting Comp render");
-//   	return <h1>Hi {props.name}!</h1>;
-// });
 
 export default Player;

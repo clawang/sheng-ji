@@ -20,7 +20,6 @@ function Chat(props) {
       setTeams(tm);
     });
     socket.on('user joined', function(data) {
-      console.log(data);
       addChat(data.username, data.username + ' has joined the game.', 'connection-msg');
     });
     socket.on('user left', function(data) {
@@ -48,8 +47,10 @@ function Chat(props) {
     }
     let chat = {body: str, username: username, style: style};
     setChat(chatContent => chatContent.concat(chat));
-    let height = chats.current.clientHeight;
-    container.current.scrollTop = height;
+    if(chats.current && container.current) {
+      let height = chats.current.clientHeight;
+      container.current.scrollTop = height;
+    }
   }
 
   return (

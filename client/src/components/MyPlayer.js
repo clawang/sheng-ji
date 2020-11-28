@@ -24,6 +24,7 @@ function MyPlayer(props) {
     const playHand = useRef(null);
     const prevPlay = useRef(null);
 
+
     useEffect(() => {
     	socket.on('my hand', function(data) {
 	        playDetails.current = {...playDetails.current, playerId: data.playerId};
@@ -33,7 +34,6 @@ function MyPlayer(props) {
 				temp.push({obj: cd, dom: {}, position: positions[i], checked: false});
 			});
 	    	setCards({type: 'replace', items: temp});
-            console.log(data.prevPlayed);
             if(data.prevPlayed) {
                 data.prevPlayed.forEach(prev => {
                     setCardHistory({type: 'add', item: {obj: prev, left: prevPlay.current.clientWidth / 2}});
@@ -47,10 +47,7 @@ function MyPlayer(props) {
         socket.on('next turn', function(data) {
         	if(data.turn === playDetails.current.playerId) {
         		playDetails.current = {...playDetails.current, turn: true, currentSuit: data.suit, plays: data.plays};
-        		props.sendMessage({body: "It's your turn!",  color: 'green'});
-        	} else {
-        		props.sendMessage({body: "It's " + data.usrnm + "'s turn!", color: ''});
-        	}
+        	} 
         })
         socket.on('win round', function(win) {
         	if(win === playDetails.current.playerId) {
@@ -236,7 +233,7 @@ function MyPlayer(props) {
         <div style={{width: '100%', display: 'flex', flexWrap: 'wrap'}}>
             <div className="play" ref={playHand}>
                 <div className="play-hand">
-                    <p id="history-message" style={mouseOver ? {opacity: 1} : {opacity: 0}}>Click to see play history</p>
+                    <p id="history-message" style={mouseOver && cardHistory.length > 1 ? {opacity: 1} : {opacity: 0}}>Click to see play history</p>
 	                <div className="play-hand-cards" onClick={revealHistory} ref={prevPlay} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
 	                	{historyVisible ? 
                             cardHistory.map((c, i) => <CardInactive cd={c.obj} key={c.obj.index + 100} win={false} id={1} left={c.left} />)

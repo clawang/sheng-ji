@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './styles/main.scss';
 import {createDeck} from './createDeck';
 import Card from './components/Card';
@@ -12,6 +12,8 @@ const socket = socketIOClient(ENDPOINT);
 function App() {
 
   const [deck, setDeck] = useState([]);
+  const [popUp, setPopUp] = useState(false);
+  const [gameHistory, setGameHistory] = useState([]);
   const [login, setLogin] = useState({
     username: '',
     loggedIn: false
@@ -21,8 +23,8 @@ function App() {
     trumpRank: null,
     points: 0
   });
-
-  console.log(gameDetails);
+  const userType = useRef('');
+  const code = useRef('');
 
   const initialize = () => {
     return createDeck();
@@ -35,22 +37,42 @@ function App() {
     });
     socket.on('update points', function(pts) {
       setGame(gameDetails => {return {...gameDetails, points: pts}});
-    })
+    });
+    socket.on('disconnected', function() {
+      alert('You have disconnected from the server. Please refresh your page.');
+    });
   }, [setDeck]);
 
-  //console.log(gameDetails);
-
-  const finishSetup = () => {
-    setLogin({username: login.username, loggedIn: true});
+  const finishSetup = (usr) => {
+    setLogin({username: usr, loggedIn: true});
   }
 
   const setUsername = (usr) => {
     setLogin({username: usr, loggedIn: login.loggedIn});
   }
 
+  const setUserType = (number) => {
+    if(number === 0) {
+      userType.current = 'player';
+    } else {
+      userType.current = 'spectator';
+    }
+  }
+
+  const togglePop = () => {
+    setPopUp(false);
+  }
+
+  const getGameHistory = (evt) => {
+    socket.emit('get game history', {}, (res) => {
+      setGameHistory(res);
+    });
+    setPopUp(true);
+  }
+
   return (
     <div className="App">
-      {login.loggedIn ? '' : <StartPage username={login.username} socket={socket} setUsername={setUsername} finished={finishSetup} />}
+      {login.loggedIn ? '' : <StartPage username={login.username} socket={socket} setUsername={setUsername} setUserType={setUserType} finished={finishSetup} code={code} />}
       <div id="chat-page">
         <div className="sidebar">
           <div className="legend">
@@ -66,10 +88,10 @@ function App() {
               <h2>Points</h2>
               <p id="points">{gameDetails.points}</p>
             </div>
-            {/*<div>
+            <div>
               <h2>Game<br/>History</h2>
-              <p><a id="game-history" href="#">View</a></p>
-            </div>*/}
+              <p><a id="game-history" href="#" onClick={getGameHistory}>View</a></p>
+            </div>
           </div>
           <div id="my-player-stats">
               <h3 id="my-username">{login.username}</h3>
@@ -77,7 +99,7 @@ function App() {
               <p><a href="#" id="help-link" style={{fontSize:'10px'}}>Help</a></p>
             </div>
           </div>
-        {deck.length > 0 ? <GameSpace deck={deck} socket={socket} /> : '' }
+        {deck.length > 0 ? <GameSpace deck={deck} socket={socket} popUp={popUp} togglePop={togglePop} history={gameHistory} userType={userType} code={code} /> : '' }
         <Chat socket={socket} username={login.username} />
       </div>
     </div>
