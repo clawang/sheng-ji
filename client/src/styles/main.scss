@@ -303,6 +303,10 @@ td {
 #team-container {
     display: flex;
     width: 100%;
+
+    #team-error {
+        text-align: center;
+    }
     
     #declarers, #opponents {
         width: 50%;

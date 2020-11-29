@@ -288,9 +288,6 @@ function startServer(fullDeck) {
 				if(startPlace >= 0) {
 					room.startCount.splice(startPlace, 1);
 				}
-				if(state === 'paused') {
-					io.to(room.code).emit('pause game', game.left);
-				}
 			}
 		});
 	});

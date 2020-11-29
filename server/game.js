@@ -147,13 +147,12 @@ class Game {
     this.connections.splice(this.connections.findIndex(ele => ele.id === socket.id), 1);
     this.left.splice(this.left.findIndex(ele => ele === newSocket.username), 1);
     this.broadcastAddUser(newSocket, io, newSocket.points);
-    if(this.gameState === 'paused') {
+    if(this.gameState === 'playing') {
       //newSocket.emit('resetup player', {hand: newSocket.hand, turn: newSocket.isTurn});
       newSocket.emit('my hand', {hand: newSocket.hand, playerId: newSocket.number, prevPlayed: newSocket.prevPlayed});
       newSocket.emit('set playerId', newSocket.number);
       io.to(this.code).emit('setup game', {trumpSuit: this.trumpSuit, trumpValue: this.trumpValue, points: this.points, deck: this.fullDeck, teams: this.teams, declarers: this.declarers, users: this.users});
       if(this.left.length <= 0) {
-        io.to(this.code).emit('unpause game', {});
         this.gameState = 'playing';
         if(this.currentRound) {
           io.to(this.code).emit('next turn', {usrnm: this.players[this.playerIds[this.turn]].username, turn: this.turn, plays: this.currentRound.played, roundIndex: this.roundIndex});
@@ -162,7 +161,15 @@ class Game {
       } else {
         io.to(this.code).emit('pause game', this.left);
       }
-    } 
+    } else if(this.gameState === 'waiting') {
+      newSocket.emit('end game', {
+        msg: msg,
+        subtitle: subtitle,
+        winner: this.winner,
+        ranks: this.ranks,
+        finish: finish
+      });
+    }
   }
 
   addUser(socket, io, usrnm, pts) {
@@ -252,11 +259,15 @@ class Game {
     this.connections.splice(this.connections.findIndex(ele => ele.username === socket.username), 1);
     if(this.gameState === 'unstarted') {
         this.users.splice(this.users.indexOf(socket.username), 1);
-        this.activeUsers--;
+        if(socket.type === 'player') {
+          this.activeUsers--;
+          if(socket.team) {
+            this.teams[socket.team].usernames.splice(this.teams[socket.team].usernames.indexOf(socket.username), 1);
+          }
+        }
     } else if(this.players[socket.id] !== undefined) {
       this.players[socket.id].left = true;
       this.left.push(socket.username);
-      this.gameState = 'paused';
       return this.gameState;
     }
   }
@@ -338,8 +349,8 @@ class Game {
   }
 
   checkGameOver(id) {
-    if(this.currentRound.played >= 3 && this.roundIndex >= 2) {
-    //if(this.currentRound.played >= 4 && this.players[this.playerIds[id]].hand.length <= 0) {
+    //if(this.currentRound.played >= 3 && this.roundIndex >= 2) {
+    if(this.currentRound.played >= 4 && this.players[this.playerIds[id]].hand.length <= 0) {
       return true;
     } else {
       return false;
@@ -360,6 +371,8 @@ class Game {
   }
 
   gameOver(io) {
+    this.gameState = 'waiting';
+
     if(this.points < 40) {
       this.winner = this.declarers;
     } else {
@@ -428,6 +441,7 @@ class Game {
     this.points = 0;
     this.ranks = 0;
     this.fullDeck = this.fullDeck.sort(() => Math.random() - 0.5);
+    this.gameState = 'playing';
     this.startGame(io);
   }
 }
