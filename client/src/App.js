@@ -7,7 +7,7 @@ import GameSpace from './GameSpace';
 import StartPage from './StartPage';
 import socketIOClient from 'socket.io-client';
 const ENDPOINT = 'http://localhost:8888/';
-const socket = socketIOClient(ENDPOINT);
+const socket = socketIOClient();
 
 function App() {
 
