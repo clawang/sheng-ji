@@ -29,62 +29,6 @@ app.get('/', function(req, res){
 	res.sendFile(__dirname + './index.html');
 });
 
-// function endGame(game) {
-// 	game.gameOver(io);
-
-// 	// new GameSchema({
-// 	// 	roundIndex: gameIndex,
-// 	// 	rounds: plays,
-// 	// 	teams: game.teams,
-// 	// 	points: game.points,
-// 	// 	trumpSuit: game.trumpSuit,
-// 	// 	trumpValue: game.trumpValue,
-// 	// 	winner: game.winner,
-// 	// 	declarer: game.declarers,
-// 	// 	starter: game.players[game.playerIds[game.starter]].username
-// 	// }).save(function(err){
-// 	// 	if(err) {
-// 	// 		console.log(err);
-// 	// 	}
-// 	// });
-
-// 	// for(let i = 0; i < 2; i++) {
-// 	// 	const usr = game.players[game.playerIds[game.teams[game.winner].members[i]]];
-// 	// 	User.findOne({username: usr.username}, function(err, doc) {
-// 	// 		if (err) {console.log(err);}
-// 	// 		if(doc !== null) {
-// 	// 			doc.points += game.ranks;
-// 	// 			doc.save();
-// 	// 		}
-// 	// 	});
-// 	// }
-// }
-
-// function gamesToTable(data) {
-// 	if(data.length <= 0) {
-// 		return 'No games yet!';
-// 	}
-// 	const teamNames = [];
-// 	teamNames[0] = data[0].teams[0].usernames[0] + ' & ' + data[0].teams[0].usernames[1];
-// 	teamNames[1] = data[0].teams[1].usernames[0] + ' & ' + data[0].teams[1].usernames[1];
-// 	let html = '<h1>Game History</h1><h3 class="yellow">The team that was the Declarer each round is in yellow.</h3><br/><table><tr><th>Round</th><th>' + teamNames[0] + '</th><th>' + teamNames[1] + '</th><th>Starter</th><th>Trump Suit</th><th>Points</th><th>Winner</th></tr>';
-// 	data.forEach(function(ele) {
-// 		const classes = [];
-// 		classes[ele.declarer] = 'winner';
-// 		html += '<tr>';
-// 		html += '<td>' + ele.roundIndex + '</td>';
-// 		html += '<td class="' + classes[0] + '"">' + ele.teams[0].score + '</td>';
-// 		html += '<td class="' + classes[1] + '"">' + ele.teams[1].score + '</td>';
-// 		html += '<td>' + ele.starter + '</td>';
-// 		html += '<td>' + ele.trumpSuit + '</td>';
-// 		html += '<td>' + ele.points + '</td>';
-// 		html += '<td>' + teamNames[ele.winner] + '</td>';
-// 		html += '</tr>';
-// 	});
-// 	html += '</table>';
-// 	return html;
-// }
-
 function generateCode() {
 	let result = '';
 	const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -107,6 +51,8 @@ function handleDisconnect(game, room, socket) {
 	}
 }
 
+let players = 0;
+
 function startServer(fullDeck) {
 
 	const port = process.env.PORT || 8888;
@@ -114,8 +60,6 @@ function startServer(fullDeck) {
 	http.listen(port, function(){
 		console.log('listening on *:8888');
 	});
-
-	//const game = new Game(fullDeck);
 
 	io.on('connection', function(socket){
 		//console.log('a user connected ' + socket.id);
@@ -147,24 +91,17 @@ function startServer(fullDeck) {
 			}
 		});
 
-		socket.on('add user', function(username, fn){
-			// User.countDocuments({username: user.username}, function(err, count) {
-			// 	if(count > 0) {
-			// 		console.log('A user with that username already exists!');
-			// 		socket.emit('registration error');
-			// 	} else {
-			// 		new User({
-			// 			username: user.username,
-			// 			password: user.password,
-			// 			points: 0
-			// 		}).save(function(err){
-			// 			if(err) {
-			// 				console.log(err);
-			// 			}
-			// 		});
-			// 		game.addUser(socket, io, user.username, 0);
-			// 	}
-			// });
+		socket.on('add user', function(username, fn) {
+			//testing purposes
+			// if(rooms.length === 0) {
+			// 	rooms.push({code: 'AAAAAA', sockets: [], game: new Game(fullDeck, 'AAAAAA'), startCount: []});
+			// }
+			// room = rooms[0];
+			// game = rooms[0].game;
+			// rooms[0].sockets.push(socket.id);
+			// socket.join('AAAAAA');
+			//end testing stuff
+
 			const status = game.checkUsers(username, socket, io);
 			if(status < 2) {
 				let a = game.connections.findIndex(val => val.username === username);
@@ -172,8 +109,17 @@ function startServer(fullDeck) {
 					fn('That username is already taken!');
 				} else {
 					game.addUser(socket, io, username, 0);
+					//testing stuff again
+					// game.setUserType(socket, io, 'player');
+					// game.setTeam(socket, io, players % 2);
+					// players++;
+					// room.startCount.push(socket.id);
+					// fn('return');
+					// if(room.startCount.length >= 4) {
+					// 	room.startCount.splice(0, room.startCount.length);
+					// 	game.startGame(io);
+					// } 
 					fn('success');
-					console.log(username);
 				}
 			} else {
 				fn('return');
@@ -215,18 +161,28 @@ function startServer(fullDeck) {
 		});
 
 		socket.on('start game', function(settings) {
-			if(!room.startCount.includes(socket.id)) {
-				room.startCount.push(socket.id);
-			}
-			if(room.startCount.length >= 4) {
-				room.startCount.splice(0, room.startCount.length);
-				if(game.roundIndex > 0) {
-					game.restartGame(io);
-				} else {
-					game.startGame(io);
+			if(handleDisconnect(game, room, socket)) {
+				if(!room.startCount.includes(socket.id)) {
+					room.startCount.push(socket.id);
 				}
-			} 
+				if(room.startCount.length >= 4) {
+					room.startCount.splice(0, room.startCount.length);
+					if(game.roundIndex > 0) {
+						game.restartGame(io);
+					} else {
+						game.startGame(io);
+					}
+				} 
+			}
 		});
+		socket.on('set suit', function(suit) {
+			game.setSuit(suit, 'btn', socket.number, io);
+		});
+
+		socket.on('finished deal', function() {
+			game.setSuit('', 'done', socket.number, io);
+		});
+
 		socket.on('chat message', function(msg) {
 			if(msg.body !== '' && handleDisconnect(game, room, socket)) {
 				io.to(room.code).emit('chat message', {
@@ -240,12 +196,6 @@ function startServer(fullDeck) {
 				let games = [];
 				fn(game.history);
 			}
-			// GameSchema.find({}, function(err, data) {
-			// 	games = data;
-			// 	const msg = gamesToTable(games);
-			// 	game.players[socket.id].emit('display games', msg);
-			// });
-
 		});
 		socket.on('submit swap cards', function(result) {
 			if(handleDisconnect(game, room, socket)) {
@@ -262,17 +212,6 @@ function startServer(fullDeck) {
 					game.revealDiscard(io);
 					game.gameOver(io);
 					game.updateScores();
-				}
-			}
-		});
-		socket.on('restart game', function() {
-			if(handleDisconnect(game, room, socket)) {
-				if(!room.startCount.includes(socket.id)) {
-					room.startCount.push(socket.id);
-				}
-				if(room.startCount.length >= 4) {
-					gameIndex++;
-					room.startCount.splice(0, room.startCount.length);
 				}
 			}
 		});

@@ -14,7 +14,7 @@ function GameStart(props) {
 	} else if(state === 2) {
 		return <JoinGame setState={() => setState(0)} socket={socket} setRoom={props.setRoom} code={props.code} />;
 	} else if(state === 3) {
-		return <Instructions setState={setState} />;
+		return <Instructions close={() => setState(0)} />;
 	} else {
 		return (
 			<div className="start-page">
@@ -40,13 +40,8 @@ function CreateGame(props) {
 	const [socket, setSocket] = useState(props.socket);
 	const [message, setMessage] = useState('');
 	const [settings, setSettings] = useState({
-		rank: 2,
-		suit: null
+		rank: 2
 	});
-
-	const changeSuit = (evt) => {
-		setSettings({...settings, suit: evt.target.value});
-	}
 
 	const changeRank = (evt) => {
 		setSettings({...settings, rank: evt.target.value});
@@ -69,18 +64,10 @@ function CreateGame(props) {
 			<div className="game-start">
 				<h1>Sheng Ji</h1>
 				<div className="create-game">
+					<h2>Settings</h2>
 					<form id="edit-settings">
 		              <label>Trump Rank</label><br/>
 		               <input id="setTrumpValue" name="setTrumpValue" autoComplete="off" defaultValue="2" min="2" max="14" type="number" onChange={changeRank}/><br/>
-		              <label>Trump Suit</label><br/><div className="select">
-		                <select id="setTrumpSuit" name="setTrumpSuit" onChange={changeSuit}>
-		                  <option value="spades">spades</option>
-		                  <option value="hearts">hearts</option>
-		                  <option value="clubs">clubs</option>
-		                  <option value="diamonds">diamonds</option>
-		                  <option value="random" defaultValue>random</option>
-		                </select>
-		                </div>
 		              <button onClick={createGame}>Create Game</button>
 		            </form>
 		            <p id="login-error" className="error-message">{message}</p>
@@ -118,8 +105,8 @@ function JoinGame(props) {
 			<div className="game-start">
 				<h1>Sheng Ji</h1>
 				<div className="create-game">
+					<h2>Game Code</h2>
 					<form id="edit-settings">
-		              <label>Game ID</label><br/>
 		              <input name="gameID" autoComplete="off" type="text" onChange={changeID}/><br/>
 		              <button onClick={joinGame}>Join Game</button>
 		              <p id="login-error" className="error-message">{message}</p>
@@ -133,7 +120,7 @@ function JoinGame(props) {
 
 function Instructions(props) {
 	const close = () => {
-		props.setState(0);
+		props.close();
 	}
 
 	return (
@@ -167,6 +154,16 @@ function Instructions(props) {
 	        <h3>Declarers and Opponents</h3>
 	        <p>In each game one team is the Declarers, and the other are the Opponents. The Declarers are the winners of the previous game. Each team's score is expressed as a card rank from two (low) up to Ace (high). In each game the trump rank is the Declarers' current score. Both sides start at two and the winners are the first side whose score goes above Ace.</p>
 	        <p>In each game, one of the Declarers is designated the starter. They will get to start the first round of the game. Additionally, before the game starts, the starter gets the 6 leftover cards after the cards have been dealed. They then get to choose 6 cards from their own hand to discard. No other players get to see these cards. These cards will become important after the game is finished.</p>
+
+
+	        <h3>The Deal</h3>
+			<p>Each player receives twelve cards, but there is no dealer as such. The trump suit is picked during the dealing.</p>
+
+			<p>The trump rank for the hand is known in advance of the deal: for the first hand it must be two because both sides start with a score of two, and in subsequent hands it is the current score of the declarers. Any player who draws a card of the trump rank during the deal may place it face up on the table, and its suit then becomes trumps for the hand. If you draw a card of the trump rank you need not show it immediately you draw it; you may keep it and expose at at any time provided that no other card has yet been exposed, or you may prefer never to expose it if you do not want its suit as trumps. Consultation between partners is not allowed.</p>
+
+			<p>After each player has drawn a hand of twelve cards there are six face-down cards left over. If no one has yet exposed a card, the starter turns these cards face up one at a time in order. Once the first of these cards is exposed it is too late for anyone to determine the trump suit by exposing one of their own cards. If a card of the trump rank is found among the last six cards, its suit becomes trumps and no further cards are turned up. If no card of the trump rank appears, the highest ranking of the six cards, excluding Jokers, determines the trump suit; among cards of equal rank the earliest exposed takes precedence.</p>
+
+			<p>In the first hand whichever player exposes a two (or the starter in the unlikely event that no one does) becomes the leader, and the leader’s side become the declarers. In subsequent hands the leader is the same player as the starter. In either case the leader picks up the last six cards and adds them to his hand. Apart from any of these cards which may already have been exposed in order to choose trumps, the cards picked up are not shown to the other players. The leader then discards any six of his eighteen cards face down.</p>
 
 	        <h3>The Play</h3>
 	        <p>During the play, Jokers and cards of the trump rank all count as belonging to the trump suit, not to the suits marked on them. </p>
@@ -220,4 +217,4 @@ function Instructions(props) {
 	);
 }
 
-export default GameStart;
+export {GameStart, Instructions};

@@ -32,7 +32,7 @@ class Game {
     this.fullDeck = fullDeck.sort(() => Math.random() - 0.5);
     this.deck = fullDeck.slice();
     this.rounds = [];
-    this.trumpSuit = 'spades';
+    this.trumpSuit = null;
     this.trumpValue = 2;
     this.turn = 0;
     this.roundIndex = 0;
@@ -48,6 +48,10 @@ class Game {
     this.gameIndex = 1;
     this.history = [];
     this.code = code;
+    this.skipped = {
+      skips: 0,
+      done: 0
+    };
   }
 
   getUsername(id) {
@@ -149,7 +153,7 @@ class Game {
     this.broadcastAddUser(newSocket, io, newSocket.points);
     if(this.gameState === 'playing') {
       //newSocket.emit('resetup player', {hand: newSocket.hand, turn: newSocket.isTurn});
-      newSocket.emit('my hand', {hand: newSocket.hand, playerId: newSocket.number, prevPlayed: newSocket.prevPlayed});
+      newSocket.emit('my hand', {hand: newSocket.hand, playerId: newSocket.number, prevPlayed: newSocket.prevPlayed, dealing: false});
       newSocket.emit('set playerId', newSocket.number);
       io.to(this.code).emit('setup game', {trumpSuit: this.trumpSuit, trumpValue: this.trumpValue, points: this.points, deck: this.fullDeck, teams: this.teams, declarers: this.declarers, users: this.users});
       if(this.left.length <= 0) {
@@ -162,6 +166,13 @@ class Game {
         io.to(this.code).emit('pause game', this.left);
       }
     } else if(this.gameState === 'waiting') {
+      const msg = this.players[this.playerIds[this.teams[this.winner].members[0]]].username + ' and ' + this.players[this.playerIds[this.teams[this.winner].members[1]]].username + ' won!';
+      const subtitle = 'Their score increases by ' + this.ranks;
+      let finish = false;
+      if(this.teams[this.winner].newScore > 14) {
+        finish = true;
+      }
+      newSocket.emit('set playerId', newSocket.number);
       newSocket.emit('end game', {
         msg: msg,
         subtitle: subtitle,
@@ -204,7 +215,7 @@ class Game {
   }
 
   broadcastAddUser(socket, io, pts) {
-    socket.emit('setup player', {id: socket.number, username: socket.username, points: pts});
+    // socket.emit('setup player', {id: socket.number, username: socket.username, points: pts});
     io.to(this.code).emit('user joined', {
       username: socket.username,
       id: socket.id,
@@ -222,37 +233,35 @@ class Game {
 
   editSettings(set) {
     this.trumpValue = parseInt(set.rank);
-    this.trumpSuit = set.suit ? String(set.suit) : 'random';
+    //this.trumpSuit = set.suit ? String(set.suit) : 'random';
     this.teams[0].newScore = this.trumpValue;
     this.teams[1].newScore = this.trumpValue;
     this.set = true;
   }
 
   setupPlayers() {
-    this.connections.forEach(function(ele) {
-      if(ele.type === 'player') {
-        this.playerIds[ele.number] = ele.id;
-        this.users[ele.number] = ele.username;
-        this.players[ele.id] = ele;
-        if(ele.number === this.turn) {
-           ele.isTurn = true;
-        } else {
-           ele.isTurn = false;
+    if(this.playerIds.length <= 0) {
+      this.connections.forEach(function(ele) {
+        if(ele.type === 'player') {
+          this.playerIds[ele.number] = ele.id;
+          this.users[ele.number] = ele.username;
+          this.players[ele.id] = ele;
+          if(ele.number === this.turn) {
+             ele.isTurn = true;
+          } else {
+             ele.isTurn = false;
+          }
+          this.startUser(ele);
         }
-        this.startUser(ele);
-        ele.emit('setup player', {id: ele.number, username: ele.username, points: ele.points});
-      }
-    }, this);
+      }, this);
+    } else {
+      this.playerIds.forEach((id) => this.startUser(this.players[id]), this);
+    }
   }
 
   startUser(socket) {
-    if(socket.number === this.starter) {
-      socket.hand = this.deck.splice(0, 18);
-    } else {
-      socket.hand = this.deck.splice(0, 12);
-    }
+    socket.hand = this.deck.splice(0, 12);
     socket.prevPlayed = [];
-    socket.hand.sort(this.sortFunction);
   }
 
   removeUser(socket) {
@@ -277,18 +286,54 @@ class Game {
     this.gameState = 'playing';
     this.deck = this.fullDeck.slice();
     this.setupPlayers();
-    if(this.trumpSuit === 'random') {
-      this.trumpSuit = suits[Math.floor(Math.random() * 4)];
-    }
-    this.adjustValues(this.fullDeck, this.trumpValue, this.trumpSuit);
-    io.to(this.code).emit('setup game', {trumpSuit: this.trumpSuit, trumpValue: this.trumpValue, points: this.points, deck: this.fullDeck, teams: this.teams, declarers: this.declarers, users: this.users});
+    io.to(this.code).emit('setup game', {trumpValue: this.trumpValue, teams: this.teams, declarers: this.declarers});
     this.turn = this.starter;
     for(let i = 0; i < this.playerIds.length; i++) {
-      this.players[this.playerIds[i]].hand.sort(this.sortFunction);
-      this.players[this.playerIds[i]].emit('my hand', {hand: this.players[this.playerIds[i]].hand, playerId: this.players[this.playerIds[i]].number});
+      this.players[this.playerIds[i]].emit('my hand', {hand: this.players[this.playerIds[i]].hand, playerId: this.players[this.playerIds[i]].number, dealing: true, rank: this.trumpValue});
       this.players[this.playerIds[i]].emit('set playerId', this.players[this.playerIds[i]].number);
     }
-    this.players[this.playerIds[this.starter]].emit('swap cards', this.starter);
+  }
+
+  setSuit(suit, type, id, io) {
+    if(suit.length > 0) {
+      this.trumpSuit = suit;
+      this.adjustValues(this.fullDeck, this.trumpValue, this.trumpSuit);
+      if(this.trumpValue === 2) {
+        this.starter = id;
+        this.turn = id;
+        this.declarers = id % 2;
+        this.opponents = (this.declarers + 1) % 2;
+        io.to(this.code).emit('setup game', {trumpValue: this.trumpValue, points: this.points, deck: this.fullDeck, teams: this.teams, declarers: this.declarers, users: this.users});
+      }
+      this.skipped.skips = 4;
+    } else if(type === 'btn') {
+      this.skipped.skips++;
+    } else if(type === 'done') {
+      this.skipped.done++;
+    }
+    if(suit.length > 0) {
+      io.to(this.code).emit('trump set', {suit: suit, rank: this.trumpValue, username: this.players[this.playerIds[id]].username});
+    }
+    if(this.skipped.done >= 4 && this.skipped.skips >= 4) {
+      this.finishDeal(io);
+    }
+  }
+
+  finishDeal(io) {
+    if(!this.trumpSuit) {
+      let i = this.deck.findIndex(c => c.value === this.trumpValue);
+      if(i < 0) {
+        i = this.deck.reduce((acc, cur, ind, src) => src[acc].value < cur.value && cur.value < 100 ? ind : acc, 0);
+      } 
+      this.trumpSuit = this.deck[i].suit;
+      io.to(this.code).emit('flip discard', {cards: this.deck, max: i, suit: this.trumpSuit});
+      this.starter = 0;
+      io.to(this.code).emit('trump set', {suit: this.trumpSuit, rank: this.trumpValue, username: ''});
+    }
+    this.adjustValues(this.fullDeck, this.trumpValue, this.trumpSuit);
+    this.players[this.playerIds[this.starter]].hand = this.players[this.playerIds[this.starter]].hand.concat(this.deck);
+    this.players[this.playerIds[this.starter]].emit('swap cards', {id: this.starter, newCards: this.deck, suit: this.trumpSuit});
+    this.players[this.playerIds[this.starter]].to(this.code).emit('sort cards', {starter: this.starter, suit: this.trumpSuit});
   }
 
   swapCards(socket, io, result) {
@@ -436,12 +481,14 @@ class Game {
     this.opponents = (this.declarers + 1) % 2;
     this.turn = this.starter;
     this.trumpValue = this.teams[this.winner].newScore;
-    this.trumpSuit = 'random';
+    this.trumpSuit = null;
     this.roundIndex = 0;
     this.points = 0;
     this.ranks = 0;
     this.fullDeck = this.fullDeck.sort(() => Math.random() - 0.5);
     this.gameState = 'playing';
+    this.skipped.skips = 0;
+    this.skipped.done = 0;
     this.startGame(io);
   }
 }

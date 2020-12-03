@@ -29,6 +29,12 @@ function GameSpace(props) {
             setMessage({body: "It's " + data.usrnm + "'s turn!", color: ''});
           }
       });
+      socket.on('flip discard', function() {
+        setDiscard(true);
+        setTimeout(function() {
+          setDiscard(false);
+        }, 7000);
+      });
       socket.on('reveal discard', function() {
         setDiscard(true);
         setTimeout(function() {

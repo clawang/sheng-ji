@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import GameStart from './components/GameStart';
+import {GameStart} from './components/GameStart';
 
 function StartPage(props) {
 

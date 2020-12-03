@@ -2,6 +2,13 @@ let suits = ['spades', 'hearts', 'clubs', 'diamonds'];
 let valName = ['-1', '0', '1', '2', '3', '4' , '5', '6', '7', '8', '9', '10', 'jack', 'queen', 'king', 'ace'];
 let display = ['-1', '0', '1', '2', '3', '4' , '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
 const suitSrc = ['/spades.png', '/hearts.png', '/clubs.png', '/diamonds.png'];
+const suitValues = {
+  spades: 0,
+  hearts: 1,
+  clubs: 2,
+  diamonds: 3,
+  trump: 4
+};
 
 function createDeck() {
     const deck = [];
@@ -29,4 +36,34 @@ function getCard(index) {
   return deck.find(cd => cd.index === index);
 }
 
-export {createDeck, getCard}
+function adjustValues(deck, trumpValue, trumpSuit) {
+  let arr = deck.slice();
+  for(let i = 0; i < arr.length; i++) {
+    const card = arr[i];
+    if(card.obj.value === trumpValue && card.obj.suit === trumpSuit) {
+      card.obj.adjSuit = 'trump';
+      card.obj.adjustedValue = card.obj.value + 80;
+    } else if(card.obj.value === trumpValue) {
+      card.obj.adjSuit = 'trump';
+      card.obj.adjustedValue = card.obj.value + 70;
+    } else if(card.obj.suit === trumpSuit) {
+      card.obj.adjSuit = 'trump';
+      card.obj.adjustedValue = card.obj.value + 50;
+    } else {
+      card.obj.adjSuit = card.obj.suit;
+      card.obj.adjustedValue = card.obj.value;
+    }
+  } 
+  console.log(arr);
+  return arr;
+}
+
+function sortFunction(a, b) {
+  if(a.obj.adjSuit !== b.obj.adjSuit) {
+    return suitValues[a.obj.adjSuit] - suitValues[b.obj.adjSuit];
+  } else {
+    return a.obj.adjustedValue - b.obj.adjustedValue;
+  }
+}
+
+export {createDeck, getCard, sortFunction, adjustValues}

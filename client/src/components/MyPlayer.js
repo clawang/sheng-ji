@@ -3,6 +3,7 @@ import Card from './Card';
 import CardInactive from './CardInactive';
 import {getCard} from '../createDeck';
 import {TweenMax} from 'gsap';
+import {sortFunction} from '../createDeck';
 import {useReducerWithPromise} from './useStateWithPromise';
 
 function MyPlayer(props) {
@@ -13,36 +14,55 @@ function MyPlayer(props) {
     const [historyVisible, setHistory] = useState(false);
     const [mouseOver, setMouse] = useState(false);
     const [winner, setWinner] = useState(false);
+    const [trumpSuit, setTrump] = useState(null);
     const playDetails = useRef({
         currentSuit: '',
-        switching: false,
+        state: 0, //0 is normal play, 1 is dealing, 2 is switching
         playerId: -1,
         turn: false,
-        plays: 0
+        plays: 0,
+        rank: null
     });
+    //const hand = useRef([]);
+    const hand = useRef([]);
     const element = useRef(null);
     const playHand = useRef(null);
     const prevPlay = useRef(null);
 
-
     useEffect(() => {
     	socket.on('my hand', function(data) {
-	        playDetails.current = {...playDetails.current, playerId: data.playerId};
+            console.log(data.hand);
+	        playDetails.current = {...playDetails.current, playerId: data.playerId, rank: data.rank, turn: true};
 	        let temp = [];
 	    	let positions = calculateCardPosition(0);
 	    	data.hand.forEach((cd, i) => {
 				temp.push({obj: cd, dom: {}, position: positions[i], checked: false});
 			});
-	    	setCards({type: 'replace', items: temp});
+            if(data.dealing) {
+                playDetails.current = {...playDetails.current, state: 1, turn: true};
+                props.sendMessage({body: "Play a card with the trump rank to set the trump suit."});
+                hand.current = temp;
+                displayCards(temp, 0);
+            } else {
+                setCards({type: 'replace', items: temp});
+            }
             if(data.prevPlayed) {
                 data.prevPlayed.forEach(prev => {
                     setCardHistory({type: 'add', item: {obj: prev, left: prevPlay.current.clientWidth / 2}});
                 });
             }
       	});
-        socket.on('swap cards', function(data) {
-        	playDetails.current = {...playDetails.current, switching: true, turn: true, playerId: data};
-        	props.sendMessage({body: "Select 6 cards to discard.", color: 'green'});
+        socket.on('trump set', function(data) {
+            playDetails.current = {...playDetails.current, turn: false};
+            if(data.username.length > 0) {
+                props.sendMessage({body: data.username + ' set the trump suit to ' + data.suit});
+            } else {
+                props.sendMessage({body: 'The trump suit was set to ' + data.suit});
+            }
+        });
+        socket.on('sort cards', function(data) {
+            playDetails.current = {...playDetails.current, state: 0};
+            setTrump(data.suit);
         });
         socket.on('next turn', function(data) {
         	if(data.turn === playDetails.current.playerId) {
@@ -66,13 +86,47 @@ function MyPlayer(props) {
             setPlayCards([]);
             setCards({type: 'clear'});
         });
+
+        // return () => {
+        //     socket.removeAllListeners();
+        // }
     }, []);
 
+    console.log(cards);
+
     useEffect(() => {
+        //console.log(cards);
     	if(cards.length > 0) {
     		repositionCards();
-    	}
+    	} 
+        if(cards.length < 12 && hand.current.length > 0 && playDetails.current.state === 1) {
+            console.log(cards);
+            displayCards(hand.current, cards.length);
+        }
+        if(cards.length >= 12 && playDetails.current.state === 1) {
+            socket.emit('finished deal');
+        }
+        if(cards.length > 12 && playDetails.current.state === 2) {
+            props.sendMessage({body: "Select 6 cards to discard.", color: 'green'});
+        }
+        socket.on('swap cards', function(data) {
+            playDetails.current = {...playDetails.current, state: 2, turn: true, playerId: data.id};
+            let temp = [];
+            data.newCards.forEach(c => {
+                temp.push({obj: c, dom: {}, checked: false});
+            });
+            setCards({type: 'concat', items: temp});
+            setTrump(data.suit);
+        });
+
+        return () => {
+            socket.off('swap cards');
+        }
     }, [cards.join(",")]);
+
+    useEffect(() => {
+        sortCards(trumpSuit);
+    }, [trumpSuit]);
 
     const calculateCardPosition = (index) => {
         let positions = [];
@@ -134,9 +188,9 @@ function MyPlayer(props) {
 
     const confirmPlay = (evt) => {
         evt.preventDefault();
-        let result = cards.filter(cd => cd.checked);
-        result = result.map(cd => cd.obj);
-        if(playDetails.current.switching) {
+        let checked = cards.filter(cd => cd.checked);
+        let result = checked.map(cd => cd.obj);
+        if(playDetails.current.state === 2) {
             if(result.length > 6) {
                 props.sendMessage({body: "You can only pick 6 cards!", color: 'red'});
             } else if(result.length < 6) {
@@ -153,7 +207,21 @@ function MyPlayer(props) {
                     setCards({type: 'filter', indices: indices});
                 }, 1000);
                 socket.emit('submit swap cards', {cards: result.map(cd => cd.index), id: playDetails.current.playerId});
-                playDetails.current = {...playDetails.current, switching: false};
+                playDetails.current = {...playDetails.current, state: 0};
+            }
+        } else if(playDetails.current.state === 1) {
+            if(result.length > 1) {
+                props.sendMessage({body: "You can only choose one card!", color: 'red'});
+            } else if(result.length < 1) {
+                props.sendMessage({body: "You didn't choose a card!", color: 'red'});
+            } else {
+                const suit = result[0].suit;
+                if(result[0].value === playDetails.current.rank) {
+                    socket.emit('set suit', suit);
+                    checked[0].checked = false;
+                } else {
+                    props.sendMessage({body: "That card isn't of the trump rank!", color: 'red'});
+                }
             }
         } else if(playDetails.current.turn) {
             if(result.length > 1) {
@@ -193,14 +261,13 @@ function MyPlayer(props) {
     }
 
     const repositionCards = () => {
+        console.log('repositioning');
     	let positions = calculateCardPosition(0);
-    	if(!arraysEqual(positions, cards)) {
-	    	cards.forEach((cd, i) => {
-	    		let temp = cd;
-	    		temp.position = positions[i];
-	    		setCards({type: 'update', index: i, item: temp});
-	    	});
-	    }
+        let temp = [...cards];
+    	temp.forEach((cd, i) => {
+    		cd.position = positions[i];
+    	});
+        setCards({type: 'replace', items: temp});
     }
 
     const revealHistory = (evt) => {
@@ -229,6 +296,52 @@ function MyPlayer(props) {
         //console.log(cardHistory);
     }
 
+    const displayCards = (hand, index) => {
+        setTimeout(function(){
+            console.log('adding ' + index);
+            setCards({type: 'add', item: hand[index]});
+        }, 1000);
+    }
+
+    const skipSubmit = (evt) => {
+        evt.preventDefault();
+        socket.emit('set suit', '');
+        playDetails.current = {...playDetails.current, turn: false};
+    }
+
+    const sortCards = (suit) => {
+        console.log('sorting cards');
+        let positions = calculateCardPosition(0);
+        adjustValues(playDetails.current.rank, suit, positions);
+        let temp = [...cards].sort(sortFunction);
+        temp.forEach((t, ind) => {
+            t.position = positions[ind];
+        });
+        setCards({type: 'replace', items: temp});
+    }
+
+    console.log(playDetails);
+
+    const adjustValues = (trumpValue, trumpSuit, positions) => {
+      for(let i = 0; i < cards.length; i++) {
+        const card = cards[i];
+        if(card.obj.value === trumpValue && card.obj.suit === trumpSuit) {
+          card.obj.adjSuit = 'trump';
+          card.obj.adjustedValue = card.obj.value + 80;
+        } else if(card.obj.value === trumpValue) {
+          card.obj.adjSuit = 'trump';
+          card.obj.adjustedValue = card.obj.value + 70;
+        } else if(card.obj.suit === trumpSuit) {
+          card.obj.adjSuit = 'trump';
+          card.obj.adjustedValue = card.obj.value + 50;
+        } else {
+          card.obj.adjSuit = card.obj.suit;
+          card.obj.adjustedValue = card.obj.value;
+        }
+        setCards({type: 'update', index: i, item: card});
+      } 
+    }
+
     return (
         <div style={{width: '100%', display: 'flex', flexWrap: 'wrap'}}>
             <div className="play" ref={playHand}>
@@ -251,7 +364,8 @@ function MyPlayer(props) {
                                 {cards.map((c, i) => <Card cd={c.obj} checked={c.checked} key={c.obj.index} left={c.position} getRef={(ref) => getRef(ref, i, 'active')} handleChange={() => checkCard(i)} />)}
                             </div>
                         </div>
-                        <button id="hand-submit" disabled={!playDetails.current.turn} onClick={confirmPlay}>Confirm Play</button>
+                        <button id="hand-submit" disabled={!playDetails.current.turn && (playDetails.current.state === 0 || playDetails.current.state === 1)} onClick={confirmPlay}>Confirm Play</button>
+                        {playDetails.current.state === 1 && playDetails.current.turn ? <button id="skip-submit" onClick={skipSubmit}>Skip</button> : ''}
                     </form>
                 </div>
             </div>
@@ -269,7 +383,7 @@ function reducer(state, action) {
                 ...state.slice(action.index + 1)
             ];
         case 'replace':
-        	return action.items;
+        	return [...action.items];
     	case 'update':
     		return [
                 ...state.slice(0, action.index),
@@ -278,6 +392,8 @@ function reducer(state, action) {
             ];
         case 'filter':
         	return state.filter((ele, i) => !action.indices.includes(i));
+        case 'concat':
+            return [...state].concat(action.items);
         case 'clear':
         	return [];
         // default:

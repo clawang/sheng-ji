@@ -130,7 +130,7 @@ td {
         }
     }
     form {
-        margin: 20px 0;
+        margin: 10px 0 20px;
         text-align: left;
     }
     label {
@@ -196,7 +196,7 @@ td {
 .create-game, .join-game {
     background: $game-background-color;
     margin: 1em 0;
-    padding: 1.5em;
+    padding: 2em 1.5em;
     width: 100%;
     color: black;
     text-align: left;
@@ -284,6 +284,10 @@ td {
 #registration {
     @extend %startscreen-shared;
     // display: none;
+}
+
+#login-error {
+    text-align: center;
 }
 
 .error-message {
@@ -778,7 +782,6 @@ td {
     text-align: center;
     width: 100%;
     padding: 0 3em;
-    overflow-x: scroll;
 
     h2 {
         display: none;
