@@ -149,6 +149,9 @@ td {
 
 .start-page {
     z-index: 50;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 
     #start-code {
         padding: 0.5em;
@@ -535,6 +538,10 @@ td {
     display: none;
 }
 
+#chat-icon {
+    display: none;
+}
+
 #chat {
     width: 220px;
     height: 100%;
@@ -917,6 +924,14 @@ td {
     margin-top: 3px;
 }
 
+.chat-opening {
+    animation: grow 0.3s ease-out forwards;
+}
+
+.chat-closing {
+    animation: shrink 0.3s ease-out forwards;
+}
+
 .green {
     color: $green;
 }
@@ -945,20 +960,39 @@ td {
     }
 }
 
-@media only screen and (max-width: 850px) {
+@keyframes grow {
+    0% {
+        transform: scale(0.01);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes shrink {
+    0% {
+        transform: scale(1);
+    }
+    100% {
+        transform: scale(0.01);
+    }
+}
+
+@media (orientation: portrait) {
     #chat-page {
         height: 100%;
-        flex-direction: column;
+        flex-direction: column-reverse;
     }
     .sidebar {
-        height: 100px;
+        width: 100%;
+        max-height: 80px;
     }
     .legend {
         flex-direction: row;
         
         div {
             border-top: none;
-            padding: 5px 15px;
+            padding: 10px 15px;
             text-align: center;
             border-left: 1px solid #eee;
         }
@@ -970,7 +1004,6 @@ td {
 
     #my-player-stats {
         right: 0;
-        top: 0;
         padding: 10px 20px;
         text-align: right;
     }
@@ -980,19 +1013,37 @@ td {
     }
     .game-space {
         width: 100%;
+        min-width: 300px;
         flex-grow: 2;
     }
+    #chat-icon {
+        display: block;
+        position: absolute;
+        width: 40px;
+        top: 1em;
+        right: 1em;
+        z-index: 30;
+
+        img {width: 100%}
+    }
     #chat {
-        width: 100%;
-        flex-direction: row;
+        width: 95%;
+        max-width: 500px;
+        max-height: 600px;
+        position: absolute;
+        right: 2.5%;
+        height: 84%;
+        top: 2%;
+        border: 1px solid $purple;
+        transform-origin: top right;
+        transform: scale(0.01);
         
         #current-users {
-            width: 150px;
+            width: 100%;
         }
         
         #all-users {
             width: 100%;
-            flex-direction:column;
             
             div {
                 width: 100%;
@@ -1008,12 +1059,21 @@ td {
         height: 150px;
         overflow:scroll;
     }
-    .hand-cards .card-container {
-        width: 60px;
+    .hand-cards {
         height: 80px;
-        margin-left: -55px;
-        padding: 5px;
-        border-radius: 5px;
+        label {
+            width: 60px;
+            height: 80px;
+            border-radius: 5px;
+
+            .card-container {
+                padding: 3px 5px;
+            }
+
+            .card-number {
+                font-size: 12px;
+            }
+        }
     }
     .my-player {
         margin-bottom: 10px;
@@ -1021,8 +1081,8 @@ td {
     #pop-up, #instructions {
         width: 95%;
         height: 95%;
-        margin: 10px auto;
-        top: 10px;
+        top:2.5%;
+        right: 2.5%;
     }
 
     .center {
@@ -1034,6 +1094,50 @@ td {
                 width: 100%;
             }
         }
+    }
+}
+
+@media only screen and (max-width: 600px) {
+    #instructions {
+        padding: 2em;
+        background: white;
+    }
+
+    .sidebar {
+        display: flex;
+        flex-direction: row;
+    }
+
+    .legend {
+        width: 80%;
+        div {
+            padding: 5px;
+            width: 25%;
+        }
+    }
+
+    #my-player-stats {
+        padding: 15px 10px;
+        width: 20%;
+        height: 100%;
+        position: relative;
+
+        #my-username {
+            width: 100%;
+        }
+    }
+
+    #player-4-cards, #player-2-cards, #player-3-cards, #player-1-cards, .play-hand {
+        .card-container {
+            width: 50px;
+            height: 70px;
+        }
+
+        height: 70px;
+    }
+
+    .hand {
+        padding: 0 10px;
     }
 }
 

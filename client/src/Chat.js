@@ -54,7 +54,7 @@ function Chat(props) {
   }
 
   return (
-    <aside id="chat">
+    <aside id="chat" className={props.portrait ? (props.status ? 'chat-opening' : 'chat-closing') : ''}>
       <div id="current-users">
         <div id="all-users">
           {teams.length > 0 ? 

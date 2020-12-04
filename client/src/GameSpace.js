@@ -30,16 +30,10 @@ function GameSpace(props) {
           }
       });
       socket.on('flip discard', function() {
-        setDiscard(true);
-        setTimeout(function() {
-          setDiscard(false);
-        }, 7000);
+        revealDiscard();
       });
       socket.on('reveal discard', function() {
-        setDiscard(true);
-        setTimeout(function() {
-          setDiscard(false);
-        }, 7000);
+        revealDiscard();
       });
       socket.on('end game', function(data) {
         setMessage({body: data.msg, subtitle: data.subtitle, color: ''});
@@ -52,6 +46,13 @@ function GameSpace(props) {
     setMessage({body: 'Waiting...', color: ''});
     setStarted(true);
     socket.emit('start game', {});
+  }
+
+  const revealDiscard = () => {
+    setDiscard(true);
+    setTimeout(function() {
+      setDiscard(false);
+    }, 7000);
   }
 
   return (

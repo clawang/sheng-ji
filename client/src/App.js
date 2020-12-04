@@ -8,7 +8,7 @@ import StartPage from './StartPage';
 import {Instructions} from './components/GameStart';
 import socketIOClient from 'socket.io-client';
 const ENDPOINT = 'http://localhost:8888/';
-const socket = socketIOClient();
+const socket = socketIOClient(ENDPOINT);
 
 function App() {
 
@@ -25,6 +25,8 @@ function App() {
     trumpRank: null,
     points: 0
   });
+  const [portrait, setPortrait] = useState(false);
+  const [chatOpen, setChat] = useState(false);
   const userType = useRef('');
   const code = useRef('');
 
@@ -34,6 +36,9 @@ function App() {
 
   useEffect(() => {
     setDeck(initialize());
+    if(window.innerWidth < window.innerHeight) {
+      setPortrait(true);
+    }
     socket.on('setup game', function(data) {
       setGame({...gameDetails, trumpRank: data.trumpValue});
     });
@@ -106,8 +111,18 @@ function App() {
             </div>
           </div>
         {deck.length > 0 ? <GameSpace deck={deck} socket={socket} popUp={popUp} togglePop={togglePop} history={gameHistory} userType={userType} code={code} /> : '' }
-        <Chat socket={socket} username={login.username} />
+        <ChatIcon handleClick={() => setChat(!chatOpen)} />
+        <Chat socket={socket} username={login.username} portrait={portrait} status={chatOpen}/>
       </div>
+    </div>
+  );
+}
+
+function ChatIcon(props) {
+
+  return (
+    <div id="chat-icon" onClick={props.handleClick}>
+      <img src={process.env.PUBLIC_URL + '/chaticon.png'} />
     </div>
   );
 }
