@@ -31,7 +31,6 @@ function MyPlayer(props) {
 
     useEffect(() => {
     	socket.on('my hand', function(data) {
-            console.log(data.hand);
 	        playDetails.current = {...playDetails.current, playerId: data.playerId, rank: data.rank, turn: true};
 	        let temp = [];
 	    	let positions = calculateCardPosition(0);
@@ -45,6 +44,7 @@ function MyPlayer(props) {
                 displayCards(temp, 0);
             } else {
                 setCards({type: 'replace', items: temp});
+                setTrump(data.trumpSuit);
             }
             if(data.prevPlayed) {
                 data.prevPlayed.forEach(prev => {

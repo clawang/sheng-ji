@@ -153,13 +153,14 @@ class Game {
     this.broadcastAddUser(newSocket, io, newSocket.points);
     if(this.gameState === 'playing') {
       //newSocket.emit('resetup player', {hand: newSocket.hand, turn: newSocket.isTurn});
-      newSocket.emit('my hand', {hand: newSocket.hand, playerId: newSocket.number, prevPlayed: newSocket.prevPlayed, dealing: false});
+      newSocket.emit('my hand', {hand: newSocket.hand, playerId: newSocket.number, prevPlayed: newSocket.prevPlayed, dealing: false, trumpSuit: this.trumpSuit});
       newSocket.emit('set playerId', newSocket.number);
+      newSocket.emit('set trump', this.trumpSuit);
       io.to(this.code).emit('setup game', {trumpSuit: this.trumpSuit, trumpValue: this.trumpValue, points: this.points, deck: this.fullDeck, teams: this.teams, declarers: this.declarers, users: this.users});
       if(this.left.length <= 0) {
         this.gameState = 'playing';
         if(this.currentRound) {
-          io.to(this.code).emit('next turn', {usrnm: this.players[this.playerIds[this.turn]].username, turn: this.turn, plays: this.currentRound.played, roundIndex: this.roundIndex});
+          io.to(this.code).emit('next turn', {usrnm: this.players[this.playerIds[this.turn]].username, turn: this.turn, plays: this.currentRound.played, roundIndex: this.roundIndex, suit: this.currentRound.suit});
         }
         // this.players[this.playerIds[this.turn]].emit('your turn', {plays: this.currentRound.played});
       } else {
