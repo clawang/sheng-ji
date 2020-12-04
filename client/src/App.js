@@ -128,7 +128,9 @@ function ChatIcon(props) {
 
   useEffect(() => {
     socket.on('chat message', function(msg){ 
-      setNotif(true);
+      if(!props.status) {
+        setNotif(true);
+      }
     });
   }, []);
 

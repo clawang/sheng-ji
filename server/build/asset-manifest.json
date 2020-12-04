@@ -1,8 +1,8 @@
 {
   "files": {
-    "main.css": "/static/css/main.d18041f9.chunk.css",
-    "main.js": "/static/js/main.b1a9c148.chunk.js",
-    "main.js.map": "/static/js/main.b1a9c148.chunk.js.map",
+    "main.css": "/static/css/main.dffae9ce.chunk.css",
+    "main.js": "/static/js/main.05e1f1f3.chunk.js",
+    "main.js.map": "/static/js/main.05e1f1f3.chunk.js.map",
     "runtime-main.js": "/static/js/runtime-main.2fc89ae4.js",
     "runtime-main.js.map": "/static/js/runtime-main.2fc89ae4.js.map",
     "static/js/2.1cd62dd8.chunk.js": "/static/js/2.1cd62dd8.chunk.js",
@@ -10,14 +10,14 @@
     "static/js/3.d82f746e.chunk.js": "/static/js/3.d82f746e.chunk.js",
     "static/js/3.d82f746e.chunk.js.map": "/static/js/3.d82f746e.chunk.js.map",
     "index.html": "/index.html",
-    "static/css/main.d18041f9.chunk.css.map": "/static/css/main.d18041f9.chunk.css.map",
+    "static/css/main.dffae9ce.chunk.css.map": "/static/css/main.dffae9ce.chunk.css.map",
     "static/js/2.1cd62dd8.chunk.js.LICENSE.txt": "/static/js/2.1cd62dd8.chunk.js.LICENSE.txt",
     "static/media/main.scss": "/static/media/montserrat-regular.35b68487.ttf"
   },
   "entrypoints": [
     "static/js/runtime-main.2fc89ae4.js",
     "static/js/2.1cd62dd8.chunk.js",
-    "static/css/main.d18041f9.chunk.css",
-    "static/js/main.b1a9c148.chunk.js"
+    "static/css/main.dffae9ce.chunk.css",
+    "static/js/main.05e1f1f3.chunk.js"
   ]
 }
