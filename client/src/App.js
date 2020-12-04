@@ -8,7 +8,7 @@ import StartPage from './StartPage';
 import {Instructions} from './components/GameStart';
 import socketIOClient from 'socket.io-client';
 const ENDPOINT = 'http://localhost:8888/';
-const socket = socketIOClient(ENDPOINT);
+const socket = socketIOClient();
 
 function App() {
 
