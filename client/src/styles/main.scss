@@ -1113,6 +1113,10 @@ select:focus {
         height: 100%;
         top:0;
         right: 0;
+
+        #instructions-close {
+            position: fixed;
+        }
     }
 
     .center {
