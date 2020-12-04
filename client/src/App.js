@@ -7,6 +7,7 @@ import GameSpace from './GameSpace';
 import StartPage from './StartPage';
 import {Instructions} from './components/GameStart';
 import socketIOClient from 'socket.io-client';
+import Div100vh from 'react-div-100vh';
 const ENDPOINT = 'http://localhost:8888/';
 const socket = socketIOClient();
 
@@ -82,46 +83,64 @@ function App() {
 
   return (
     <div className="App">
-      {login.loggedIn ? '' : <StartPage username={login.username} socket={socket} setUsername={setUsername} setUserType={setUserType} finished={finishSetup} code={code} />}
+      {login.loggedIn ? '' : <Div100vh><StartPage username={login.username} socket={socket} setUsername={setUsername} setUserType={setUserType} finished={finishSetup} code={code} /></Div100vh>}
       {help ? <Instructions close={() => setHelp(false)} /> : ''}
-      <div id="chat-page">
-        <div className="sidebar">
-          <div className="legend">
-            <div>
-              <h2>Trump Suit</h2>
-              <p id="trump-suit">{gameDetails.trumpSuit ? <img src={process.env.PUBLIC_URL + "/" + gameDetails.trumpSuit + ".png"} /> : '?'} </p>
+      <Div100vh>
+        <div id="chat-page">
+          <div className="sidebar">
+            <div className="legend">
+              <div>
+                <h2>Trump Suit</h2>
+                <p id="trump-suit">{gameDetails.trumpSuit ? <img src={process.env.PUBLIC_URL + "/" + gameDetails.trumpSuit + ".png"} /> : '?'} </p>
+              </div>
+              <div>
+                <h2>Trump Rank</h2>
+                <p id="trump-rank">{gameDetails.trumpRank ? gameDetails.trumpRank : ''}</p>
+              </div>
+              <div>
+                <h2>Points</h2>
+                <p id="points">{gameDetails.points}</p>
+              </div>
+              <div>
+                <h2>Game<br/>History</h2>
+                <p><a id="game-history" href="#" onClick={getGameHistory}>View</a></p>
+              </div>
             </div>
-            <div>
-              <h2>Trump Rank</h2>
-              <p id="trump-rank">{gameDetails.trumpRank ? gameDetails.trumpRank : ''}</p>
+            <div id="my-player-stats">
+                <h3 id="my-username">{login.username}</h3>
+                {/*<p>My Score: <span id="my-score"></span></p>*/}
+                <p><a href="#" id="help-link" style={{fontSize:'10px'}} onClick={() => setHelp(true)}>Help</a></p>
+              </div>
             </div>
-            <div>
-              <h2>Points</h2>
-              <p id="points">{gameDetails.points}</p>
-            </div>
-            <div>
-              <h2>Game<br/>History</h2>
-              <p><a id="game-history" href="#" onClick={getGameHistory}>View</a></p>
-            </div>
-          </div>
-          <div id="my-player-stats">
-              <h3 id="my-username">{login.username}</h3>
-              {/*<p>My Score: <span id="my-score"></span></p>*/}
-              <p><a href="#" id="help-link" style={{fontSize:'10px'}} onClick={() => setHelp(true)}>Help</a></p>
-            </div>
-          </div>
-        {deck.length > 0 ? <GameSpace deck={deck} socket={socket} popUp={popUp} togglePop={togglePop} history={gameHistory} userType={userType} code={code} /> : '' }
-        <ChatIcon handleClick={() => setChat(!chatOpen)} />
-        <Chat socket={socket} username={login.username} portrait={portrait} status={chatOpen}/>
-      </div>
+          {deck.length > 0 ? <GameSpace deck={deck} socket={socket} popUp={popUp} togglePop={togglePop} history={gameHistory} userType={userType} code={code} /> : '' }
+          <ChatIcon handleClick={() => setChat(!chatOpen)} socket={socket} status={chatOpen}/>
+          <Chat socket={socket} username={login.username} portrait={portrait} status={chatOpen}/>
+        </div>
+      </Div100vh>
     </div>
   );
 }
 
 function ChatIcon(props) {
 
+  const [socket, setSocket] = useState(props.socket);
+  const [notif, setNotif] = useState(false);
+
+  useEffect(() => {
+    socket.on('chat message', function(msg){ 
+      setNotif(true);
+    });
+  }, []);
+
+  useEffect(() => {
+    if(props.status) {
+      setNotif(false);
+    }
+  }, [props.status]);
+
   return (
     <div id="chat-icon" onClick={props.handleClick}>
+      {notif ? <div id="chat-notif"></div> : ''}
       <img src={process.env.PUBLIC_URL + '/chaticon.png'} />
     </div>
   );

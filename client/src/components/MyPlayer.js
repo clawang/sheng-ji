@@ -86,13 +86,7 @@ function MyPlayer(props) {
             setPlayCards([]);
             setCards({type: 'clear'});
         });
-
-        // return () => {
-        //     socket.removeAllListeners();
-        // }
     }, []);
-
-    console.log(cards);
 
     useEffect(() => {
         //console.log(cards);
@@ -100,7 +94,6 @@ function MyPlayer(props) {
     		repositionCards();
     	} 
         if(cards.length < 12 && hand.current.length > 0 && playDetails.current.state === 1) {
-            console.log(cards);
             displayCards(hand.current, cards.length);
         }
         if(cards.length >= 12 && playDetails.current.state === 1) {
@@ -261,7 +254,6 @@ function MyPlayer(props) {
     }
 
     const repositionCards = () => {
-        console.log('repositioning');
     	let positions = calculateCardPosition(0);
         let temp = [...cards];
     	temp.forEach((cd, i) => {
@@ -298,7 +290,6 @@ function MyPlayer(props) {
 
     const displayCards = (hand, index) => {
         setTimeout(function(){
-            console.log('adding ' + index);
             setCards({type: 'add', item: hand[index]});
         }, 1000);
     }
@@ -310,7 +301,6 @@ function MyPlayer(props) {
     }
 
     const sortCards = (suit) => {
-        console.log('sorting cards');
         let positions = calculateCardPosition(0);
         adjustValues(playDetails.current.rank, suit, positions);
         let temp = [...cards].sort(sortFunction);
@@ -319,8 +309,6 @@ function MyPlayer(props) {
         });
         setCards({type: 'replace', items: temp});
     }
-
-    console.log(playDetails);
 
     const adjustValues = (trumpValue, trumpSuit, positions) => {
       for(let i = 0; i < cards.length; i++) {
