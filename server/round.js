@@ -1,3 +1,5 @@
+const helper = require('./assets');
+
 class Round {
   //who started, what suit is biggest, who won
   constructor(playerId, trumpSuit, trumpValue) {
@@ -7,21 +9,62 @@ class Round {
     this.played = 0;
     this.cards = []; //an array of all cards played this round
     this.points = 0;
+    this.suit = null;
   }
 
-  setSuit(suit) {
+  setSuit(suit, count, play, pairs) {
     this.suit = suit;
+    this.count = count;
+    this.play = play;
+    this.pairs = pairs;
   }
 
   addCard(cd, id) {
-    const card = cd[0];
-    let value = card.adjustedValue;
-    if(card.adjSuit === this.suit) {
+    let value;
+    let suitCheck = cd.filter(p => p.adjSuit !== cd[0].adjSuit);
+    let arr = helper.findPairs(cd);
+    if(this.play === 'single') {
+      value = cd[0].adjustedValue;
+    } else if(this.play === 'pair') {
+      if(arr[0].length > 0) {
+        value = cd[0].adjustedValue;
+      } else {
+        value = 0;
+      }
+    } else if(this.play === 'tractor') {
+      if(arr[1].length > 0 || suitCheck.length > 0) {
+        value = 0;
+      } else {
+        for(let i = 1; i < arr[0].length; i++) {
+          if(arr[0][i][0].adjustedValue - arr[0][i - 1][0].adjustedValue !== 1) {
+            value = 1;
+          }
+        }
+        if(value !== 1) {
+          value = arr[0].reduce((acc, cur) => Math.max(acc, cur[0].adjustedValue), 0);
+        }
+      }
+    } else if(this.play === 'top') {
+      if(suitCheck.length > 0) {
+        value = 0;
+      } else if(this.played === 0) {
+        value = cd.reduce((acc, cur) => Math.max(acc, cur.adjustedValue), 0); 
+      } else if(cd[0].adjSuit === this.trumpSuit && arr[0].length === this.pairs) {
+        if(this.pairs > 0) {
+          value = arr[0].reduce((acc, cur) => Math.max(acc, cur[0].adjustedValue), 0); 
+        } else {
+          value = cd.reduce((acc, cur) => Math.max(acc, cur.adjustedValue), 0); 
+        }
+      } else {
+        value = 1;
+      }
+    }
+    if(cd[0].adjSuit === this.suit && suitCheck.length === 0) {
       value += 20;
     } 
-    this.cards.push({card: card, id: id, value: value});
+    this.cards.push({cards: cd, id: id, value: value});
     this.played++;
-    this.points += cd[0].points;
+    this.points += cd.reduce((acc, cur) => acc + cur.points, 0);
   }
 
   getWinner() { 

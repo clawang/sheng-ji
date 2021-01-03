@@ -16,6 +16,12 @@ function GameSpace(props) {
   //let playerId;
 
   useEffect(() => {
+      socket.on('user joined', function(data) {
+        setMessage({...message, subtitle: 'Active players: ' + data.players + '/4'});
+      });
+      socket.on('user left', function(data) {
+        setMessage({...message, subtitle: 'Active players: ' + data.players + '/4'});
+      });
       socket.on('set playerId', function(id) {
         playerId.current = id;
       });
@@ -43,7 +49,7 @@ function GameSpace(props) {
 
   const startGame = (evt) => {
     evt.preventDefault();
-    setMessage({body: 'Waiting...', color: ''});
+    setMessage({...message, body: 'Waiting...', color: ''});
     setStarted(true);
     socket.emit('start game', {});
   }

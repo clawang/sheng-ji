@@ -41,7 +41,7 @@ function Player(props) {
         <div className={"player-" + props.id} ref={thisBox}>
             <h2>{username}</h2>
             <div id={"player-" +props.id+"-cards"}>
-                {cards.map((c, i) => <CardInactive cd={c} key={c.index} win={winner} id={props.id} width={thisBox ? thisBox.current.clientWidth : 150}/>)}
+                {cards.map((c, i) => <CardInactive cd={c} key={String(c.index).concat(":" + i)} index={i} win={winner} id={props.id} width={thisBox ? thisBox.current.clientWidth : 150} total={cards.length}/>)}
             </div>
         </div>
     );

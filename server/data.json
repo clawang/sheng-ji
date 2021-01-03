@@ -368,14 +368,14 @@
   {
     "name": "small joker",
     "suit": "trump",
-    "value": 100,
+    "value": 80,
     "display": "JOKER",
     "points": 0
   },
   {
     "name": "big joker",
     "suit": "trump",
-    "value": 101,
+    "value": 81,
     "display": "JOKER",
     "points": 0
   }

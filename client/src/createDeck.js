@@ -25,9 +25,9 @@ function createDeck() {
         index++;
       }
     }
-    deck.push({name: 'small joker', suit: 'trump', value: 100, display: 'JOKER', points: 0, index: index, img: '', adjustedValue: 100, adjSuit: 'trump'});
+    deck.push({name: 'small joker', suit: 'trump', value: 80, display: 'JOKER', points: 0, index: index, img: '', adjustedValue: 100, adjSuit: 'trump'});
     index++;
-    deck.push({name: 'big joker', suit: 'trump', value: 101, display: 'JOKER', points: 0, index: index, img: '', adjustedValue: 101, adjSuit: 'trump'});
+    deck.push({name: 'big joker', suit: 'trump', value: 81, display: 'JOKER', points: 0, index: index, img: '', adjustedValue: 101, adjSuit: 'trump'});
     return deck;
 }
 
@@ -42,19 +42,18 @@ function adjustValues(deck, trumpValue, trumpSuit) {
     const card = arr[i];
     if(card.obj.value === trumpValue && card.obj.suit === trumpSuit) {
       card.obj.adjSuit = 'trump';
-      card.obj.adjustedValue = card.obj.value + 80;
+      card.obj.adjustedValue = 70;
     } else if(card.obj.value === trumpValue) {
       card.obj.adjSuit = 'trump';
-      card.obj.adjustedValue = card.obj.value + 70;
+      card.obj.adjustedValue = 60;
     } else if(card.obj.suit === trumpSuit) {
       card.obj.adjSuit = 'trump';
-      card.obj.adjustedValue = card.obj.value + 50;
+      card.obj.adjustedValue = card.obj.value + 40;
     } else {
       card.obj.adjSuit = card.obj.suit;
       card.obj.adjustedValue = card.obj.value;
     }
   } 
-  console.log(arr);
   return arr;
 }
 

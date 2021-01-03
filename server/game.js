@@ -1,18 +1,11 @@
 const Round = require('./round');
+const helper = require('./assets');
 
 const suits = ['spades', 'hearts', 'clubs', 'diamonds'];
 
-const suitValues = {
-  spades: 0,
-  hearts: 1,
-  clubs: 2,
-  diamonds: 3,
-  trump: 4
-};
-
 class Game {
 
-  constructor(fullDeck, code) {
+  constructor(code) {
     this.users = [];
     this.teams = [];
     this.teams[0]= { //declarers
@@ -29,8 +22,9 @@ class Game {
     };
     this.players = [];
     this.playerIds = [];
-    this.fullDeck = fullDeck.sort(() => Math.random() - 0.5);
-    this.deck = fullDeck.slice();
+    this.deckCount = null;
+    this.fullDeck = [];
+    this.deck = [];
     this.rounds = [];
     this.trumpSuit = null;
     this.trumpValue = 2;
@@ -78,44 +72,6 @@ class Game {
     return result;
   }
 
-  sortFunction(a, b) {
-    if(a.adjSuit !== b.adjSuit) {
-      return suitValues[a.adjSuit] - suitValues[b.adjSuit];
-    } else {
-      return a.adjustedValue - b.adjustedValue;
-    }
-  }
-
-  adjustValues(deck, trumpValue, trumpSuit) {
-    // let cards = [];
-    for(let i = 0; i < deck.length; i++) {
-      const card = deck[i];
-      if(card.value === trumpValue && card.suit === trumpSuit) {
-        card.adjSuit = 'trump';
-        card.adjustedValue = card.value + 80;
-      } else if(card.value === trumpValue) {
-        card.adjSuit = 'trump';
-        card.adjustedValue = card.value + 70;
-      } else if(card.suit === trumpSuit) {
-        card.adjSuit = 'trump';
-        card.adjustedValue = card.value + 50;
-      } else {
-        card.adjSuit = card.suit;
-        card.adjustedValue = card.value;
-      }
-    } 
-  }
-
-  partitionCards(hand, values) {
-    const play = [];
-    for(let i = 0; i < values.length; i++) {
-      let a = hand.findIndex(element => element.index === parseInt(values[i]));
-      const temp = hand.splice(a, 1);
-      play.push(temp[0]);
-    }
-    return play;
-  }
-
   checkUsers(usrnm, socket, io) {
     if(this.users.includes(usrnm)) {
       let flag = false;
@@ -153,10 +109,10 @@ class Game {
     this.broadcastAddUser(newSocket, io, newSocket.points);
     if(this.gameState === 'playing') {
       //newSocket.emit('resetup player', {hand: newSocket.hand, turn: newSocket.isTurn});
-      newSocket.emit('my hand', {hand: newSocket.hand, playerId: newSocket.number, prevPlayed: newSocket.prevPlayed, dealing: false, trumpSuit: this.trumpSuit});
+      newSocket.emit('my hand', {hand: newSocket.hand, playerId: newSocket.number, prevPlayed: newSocket.prevPlayed, dealing: false, trumpSuit: this.trumpSuit, rank: this.trumpValue, decks: this.deckCount});
       newSocket.emit('set playerId', newSocket.number);
       newSocket.emit('set trump', this.trumpSuit);
-      io.to(this.code).emit('setup game', {trumpSuit: this.trumpSuit, trumpValue: this.trumpValue, points: this.points, deck: this.fullDeck, teams: this.teams, declarers: this.declarers, users: this.users});
+      newSocket.emit('setup game', {trumpSuit: this.trumpSuit, trumpValue: this.trumpValue, points: this.points, deck: this.fullDeck, teams: this.teams, declarers: this.declarers, users: this.users});
       if(this.left.length <= 0) {
         this.gameState = 'playing';
         if(this.currentRound) {
@@ -216,11 +172,11 @@ class Game {
   }
 
   broadcastAddUser(socket, io, pts) {
-    // socket.emit('setup player', {id: socket.number, username: socket.username, points: pts});
     io.to(this.code).emit('user joined', {
       username: socket.username,
       id: socket.id,
       users: this.users,
+      players: this.activeUsers
     });
   }
 
@@ -233,8 +189,10 @@ class Game {
   }
 
   editSettings(set) {
+    this.deckCount = 2;
+    this.fullDeck = helper.createDeck(this.deckCount);
+    this.fullDeck = this.fullDeck.sort(() => Math.random() - 0.5);
     this.trumpValue = parseInt(set.rank);
-    //this.trumpSuit = set.suit ? String(set.suit) : 'random';
     this.teams[0].newScore = this.trumpValue;
     this.teams[1].newScore = this.trumpValue;
     this.set = true;
@@ -261,11 +219,13 @@ class Game {
   }
 
   startUser(socket) {
-    socket.hand = this.deck.splice(0, 12);
+    let extra = (this.fullDeck.length % 4) * -0.5 + 2;
+    let cardCount = Math.floor(this.fullDeck.length / 4) - extra;
+    socket.hand = this.deck.splice(0, cardCount);
     socket.prevPlayed = [];
   }
 
-  removeUser(socket) {
+  removeUser(socket, io) {
     this.connections.splice(this.connections.findIndex(ele => ele.username === socket.username), 1);
     if(this.gameState === 'unstarted') {
         this.users.splice(this.users.indexOf(socket.username), 1);
@@ -286,11 +246,12 @@ class Game {
     this.teams.forEach(ele => ele.score = ele.newScore);
     this.gameState = 'playing';
     this.deck = this.fullDeck.slice();
+    //console.log(this.deck);
     this.setupPlayers();
     io.to(this.code).emit('setup game', {trumpValue: this.trumpValue, teams: this.teams, declarers: this.declarers});
     this.turn = this.starter;
     for(let i = 0; i < this.playerIds.length; i++) {
-      this.players[this.playerIds[i]].emit('my hand', {hand: this.players[this.playerIds[i]].hand, playerId: this.players[this.playerIds[i]].number, dealing: true, rank: this.trumpValue});
+      this.players[this.playerIds[i]].emit('my hand', {hand: this.players[this.playerIds[i]].hand, playerId: this.players[this.playerIds[i]].number, dealing: true, rank: this.trumpValue, decks: this.deckCount});
       this.players[this.playerIds[i]].emit('set playerId', this.players[this.playerIds[i]].number);
     }
   }
@@ -298,7 +259,7 @@ class Game {
   setSuit(suit, type, id, io) {
     if(suit.length > 0) {
       this.trumpSuit = suit;
-      this.adjustValues(this.fullDeck, this.trumpValue, this.trumpSuit);
+      helper.adjustValues(this.fullDeck, this.trumpValue, this.trumpSuit);
       if(this.trumpValue === 2) {
         this.starter = id;
         this.turn = id;
@@ -331,17 +292,84 @@ class Game {
       this.starter = 0;
       io.to(this.code).emit('trump set', {suit: this.trumpSuit, rank: this.trumpValue, username: ''});
     }
-    this.adjustValues(this.fullDeck, this.trumpValue, this.trumpSuit);
+    helper.adjustValues(this.fullDeck, this.trumpValue, this.trumpSuit);
     this.players[this.playerIds[this.starter]].hand = this.players[this.playerIds[this.starter]].hand.concat(this.deck);
     this.players[this.playerIds[this.starter]].emit('swap cards', {id: this.starter, newCards: this.deck, suit: this.trumpSuit});
     this.players[this.playerIds[this.starter]].to(this.code).emit('sort cards', {starter: this.starter, suit: this.trumpSuit});
   }
 
   swapCards(socket, io, result) {
-    const cd = this.partitionCards(this.players[socket.id].hand, result.cards);
+    const cd = helper.partitionCards(this.players[socket.id].hand, result.cards);
     this.discard = cd.slice();
-    // this.players[socket.id].emit('my recent play', {hand: this.players[socket.id].hand, cards: []});
     this.startNewRound(this.starter, io);
+  }
+
+  validatePlay(socket, play, id) {
+    let cards = socket.hand;
+    let suitCheck = play.filter(p => p.adjSuit !== play[0].adjSuit);
+    if(this.currentRound.played < 1) { //leader
+      if(suitCheck.length > 0) {
+        return 'You need to play cards of the same suit';
+      } else if(play.length > 1) { //more than one card
+        let arr = helper.findPairs(play);
+        //console.log(socket.username + "'s cards:")
+        console.log(arr);
+        if(arr[1].length <= 0) { //no singles
+          if(arr[0].length > 1) { //tractor
+            for(let i = 1; i < arr[0].length; i++) {
+              if(arr[0][i][0].adjustedValue - arr[0][i - 1][0].adjustedValue !== 1) {
+                return 'You need to play pairs in a row';
+              }
+            }
+            this.currentRound.setSuit(play[0].adjSuit, play.length, 'tractor', arr[0].length);
+            return 'success';
+          } else { //pair play
+            this.currentRound.setSuit(play[0].adjSuit, play.length, 'pair', arr[0].length);
+            return 'success';
+          }
+        } else { //top play
+          let minSing = arr[1].reduce((acc, cur) => Math.min(acc, cur.adjustedValue), 200);
+          let minPair = arr[0].reduce((acc, cur) => Math.min(acc, cur.adjustedValue), 200);
+          for(let i = 0; i < 4; i++) {
+            let temp;
+            if(id !== i) {
+              let playerHand = helper.findPairs(this.players[this.playerIds[i]].hand);
+              temp = playerHand[1].filter(h => h.adjSuit === play[0].adjSuit && h.adjustedValue > minSing);
+              temp.concat(playerHand[0].filter(h => h.adjSuit === play[0].adjSuit && h.adjustedValue > minPair));
+            } else {
+              let leftover = helper.splitCards(cards, play);
+              let leftPair = helper.findPairs(leftover);
+              temp = leftPair[1].filter(h => h.adjSuit === play[0].adjSuit && h.adjustedValue > minSing);
+              temp.concat(leftPair[0].filter(h => h.adjSuit === play[0].adjSuit && h.adjustedValue > minPair));
+            }
+            if(temp.length > 0) { //invalid play
+              return 'You need to play pairs or the highest cards left in a suit';
+            }
+          }
+          this.currentRound.setSuit(play[0].adjSuit, play.length, 'top', arr[0].length);
+          return 'success';
+        }
+      } else { //single play
+        this.currentRound.setSuit(play[0].adjSuit, play.length, 'single', 0);
+        return 'success';
+      }
+    } else { //not lead
+      let leftover = helper.splitCards(cards, play);
+      let arr = helper.findPairs(play);
+      if(play.length !== this.currentRound.count) {
+        return "You need to play " + this.currentRound.count + " card" + (this.currentRound.count > 1 ? "s" : "");
+      } else if((play[0].adjSuit === this.currentRound.suit && suitCheck.length === 0) || leftover.findIndex(cd => cd.adjSuit === this.currentRound.suit) < 0) {
+        let pairsLeft = helper.findPairs(leftover.filter(l => l.adjSuit === this.currentRound.suit));
+        let pairs = helper.findPairs(cards.filter(l => l.adjSuit === this.currentRound.suit));
+        if(arr[0].length >= this.currentRound.pairs || (pairsLeft[0].length <= 0 && pairs[0].length < this.currentRound.pairs)) {
+          return 'success';
+        } else {
+          return "You need to play a pair if you have one";
+        }
+      } else {
+        return "You need to play " + this.currentRound.suit;
+      }
+    }
   }
 
   submitHand(socket, io, cards, id) {
@@ -350,10 +378,9 @@ class Game {
       this.playerIds[id] = socket.id;
       sock.id = socket.id;
     }
-    const cd = this.partitionCards(sock.hand, cards);
+    const cd = helper.partitionCards(sock.hand, cards);
     sock.prevPlayed.concat(cd);
     if(this.currentRound.played < 1) {
-      this.currentRound.setSuit(cd[0].adjSuit);
       io.to(this.code).emit('new round', this.currentRound.started);
     } 
     io.to(this.code).emit('hand played', {
@@ -382,7 +409,6 @@ class Game {
     this.rounds.push(this.currentRound);
     io.to(this.code).emit('win round', winner);
     io.to(this.code).emit('update points', this.points);
-    //io.emit('game message', {user: this.players[this.playerIds[this.turn]].username, subtitle: subtitle, winner: winner});
     if(this.players[socket.id].hand.length > 0) { 
       this.startNewRound(winner, io); //set up next round if game not over
     }
@@ -419,28 +445,21 @@ class Game {
   gameOver(io) {
     this.gameState = 'waiting';
 
-    if(this.points < 40) {
+    this.ranks = Math.floor((this.points - (this.deckCount * 40))/40);
+    if(this.ranks >= 0) {
+      this.ranks += 1;
+    } 
+
+    if(this.ranks < 0) {
       this.winner = this.declarers;
     } else {
       this.winner = this.opponents;
     }
 
-    const winner1 = this.players[this.playerIds[this.teams[this.winner].members[0]]];
-    const winner2 =this.players[this.playerIds[this.teams[this.winner].members[1]]];
+    this.ranks = Math.abs(this.ranks);
 
-    if(this.points <= 0) {
-      this.ranks = 2;
-    } else if(this.points > 0 && this.points < 80) {
-      this.ranks = 1;
-    } else if(this.points >= 80 && this.points < 120) {
-      this.ranks = 2;
-    } else if(this.points >= 120 && this.points < 160) {
-      this.ranks = 3;
-    } else if(this.points >= 160 && this.points < 200) {
-      this.ranks = 4;
-    } else {
-      this.ranks = 5;
-    }
+    const winner1 = this.players[this.playerIds[this.teams[this.winner].members[0]]];
+    const winner2 = this.players[this.playerIds[this.teams[this.winner].members[1]]];
 
     const msg = winner1.username + ' and ' + winner2.username + ' won!';
     const subtitle = 'Their score increases by ' + this.ranks;

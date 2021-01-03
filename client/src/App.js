@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './styles/main.scss';
-import {createDeck} from './createDeck';
 import Card from './components/Card';
 import Chat from './Chat';
 import GameSpace from './GameSpace';
@@ -13,7 +12,6 @@ const socket = socketIOClient();
 
 function App() {
 
-  const [deck, setDeck] = useState([]);
   const [popUp, setPopUp] = useState(false);
   const [gameHistory, setGameHistory] = useState([]);
   const [help, setHelp] = useState(false);
@@ -31,12 +29,7 @@ function App() {
   const userType = useRef('');
   const code = useRef('');
 
-  const initialize = () => {
-    return createDeck();
-  }
-
   useEffect(() => {
-    setDeck(initialize());
     if(window.innerWidth < window.innerHeight) {
       setPortrait(true);
     }
@@ -55,7 +48,7 @@ function App() {
     socket.on('disconnected', function() {
       alert('You have disconnected from the server. Please refresh your page.');
     });
-  }, [setDeck]);
+  }, []);
 
   const finishSetup = (usr) => {
     setLogin({username: usr, loggedIn: true});
@@ -116,7 +109,7 @@ function App() {
                   <p><a href="#" id="help-link" style={{fontSize:'10px'}} onClick={() => setHelp(true)}>Help</a></p>
                 </div>
               </div>
-            {deck.length > 0 ? <GameSpace deck={deck} socket={socket} popUp={popUp} togglePop={togglePop} history={gameHistory} userType={userType} code={code} /> : '' }
+            <GameSpace socket={socket} popUp={popUp} togglePop={togglePop} history={gameHistory} userType={userType} code={code} />
             <ChatIcon handleClick={() => setChat(!chatOpen)} socket={socket} status={chatOpen}/>
             <Chat socket={socket} username={login.username} portrait={portrait} status={chatOpen}/>
           </div>

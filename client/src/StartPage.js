@@ -5,7 +5,7 @@ function StartPage(props) {
 
     const [socket, setSocket] = useState(props.socket);
     const [message, setMessage] = useState('');
-    const [state, setState] = useState(-1);
+    const [state, setState] = useState(0);
     const [username, setUsername] = useState('');
     const [teams, setTeams] = useState([{usernames: []}, {usernames: []}]);
 

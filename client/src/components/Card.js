@@ -9,11 +9,11 @@ function Card(props) {
 	}, [thisCard]);
 
     return (
-        <label style={{left: props.left + 'px', zIndex: props.order}} ref={thisCard}>
+        <label style={{left: props.left + 'px', zIndex: props.order, top: props.top}} ref={thisCard}>
             <input type="checkbox" name="card-picked" className="card-checkbox" value={props.cd.index} checked={props.checked} onChange={props.handleChange}/>
             <div className="card-container">
-                <p className={"card-number" + (props.cd.value < 100 ? '' : ' joker') + (props.cd.value === 101 ? ' red' : '')}>{props.cd.display}</p>
-                {props.cd.value < 100 ? <img className="card-suit" src={process.env.PUBLIC_URL + props.cd.img} /> : ''}
+                <p className={"card-number" + (props.cd.value < 80 ? '' : ' joker') + (props.cd.value === 81 ? ' red' : '')}>{props.cd.display}</p>
+                {props.cd.value < 80 ? <img className="card-suit" src={process.env.PUBLIC_URL + props.cd.img} /> : ''}
             </div>
         </label>
     );
