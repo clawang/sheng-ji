@@ -90,14 +90,14 @@ function startServer(fullDeck) {
 
 		socket.on('add user', function(username, fn) {
 			//testing purposes
-			if(rooms.length === 0) {
-				rooms.push({code: 'AAAAAA', sockets: [], game: new Game('AAAAAA'), startCount: []});
-				rooms[0].game.editSettings({rank: 2});
-			}
-			room = rooms[0];
-			game = rooms[0].game;
-			rooms[0].sockets.push(socket.id);
-			socket.join('AAAAAA');
+			// if(rooms.length === 0) {
+			// 	rooms.push({code: 'AAAAAA', sockets: [], game: new Game('AAAAAA'), startCount: []});
+			// 	rooms[0].game.editSettings({rank: 2});
+			// }
+			// room = rooms[0];
+			// game = rooms[0].game;
+			// rooms[0].sockets.push(socket.id);
+			// socket.join('AAAAAA');
 			//end testing stuff
 
 			const status = game.checkUsers(username, socket, io);
@@ -108,15 +108,15 @@ function startServer(fullDeck) {
 				} else {
 					game.addUser(socket, io, username, 0);
 					//testing stuff again
-					game.setUserType(socket, io, 'player');
-					game.setTeam(socket, io, players % 2);
-					players++;
-					room.startCount.push(socket.id);
-					fn('return');
-					if(room.startCount.length >= 4) {
-						room.startCount.splice(0, room.startCount.length);
-						game.startGame(io);
-					} 
+					// game.setUserType(socket, io, 'player');
+					// game.setTeam(socket, io, players % 2);
+					// players++;
+					// room.startCount.push(socket.id);
+					// fn('return');
+					// if(room.startCount.length >= 4) {
+					// 	room.startCount.splice(0, room.startCount.length);
+					// 	game.startGame(io);
+					// } 
 					//end testing stuff again
 					fn('success');
 				}
@@ -201,22 +201,26 @@ function startServer(fullDeck) {
 				game.swapCards(socket, io, result);
 			}
 		});
-		socket.on('submit hand', function(result, ackFn) {
+		socket.on('validate hand', function(result, ackFn) {
 			if(handleDisconnect(game, room, socket)) {
 				let msg = game.validatePlay(socket, result.cards, result.id);
 				if(msg === 'success') {
-					game.submitHand(socket, io, result.cards.map(cd => cd.index), result.id);
 					ackFn('success');
-					if(game.checkGameOver(result.id)) {
-						for(let i = 0; i < 4; i++) {
-							game.players[game.playerIds[i]].hand = [];
-						}
-						game.revealDiscard(io);
-						game.gameOver(io);
-						game.updateScores();
-					}
 				} else {
 					ackFn(msg);
+				}
+			}
+		});
+		socket.on('submit hand', function(result) {
+			if(handleDisconnect(game, room, socket)) {
+				game.submitHand(socket, io, result.cards, result.id);
+				if(game.checkGameOver(result.id)) {
+					for(let i = 0; i < 4; i++) {
+						game.players[game.playerIds[i]].hand = [];
+					}
+					game.revealDiscard(io);
+					game.gameOver(io);
+					game.updateScores();
 				}
 			}
 		});

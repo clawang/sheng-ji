@@ -49,7 +49,7 @@ class Round {
         value = 0;
       } else if(this.played === 0) {
         value = cd.reduce((acc, cur) => Math.max(acc, cur.adjustedValue), 0); 
-      } else if(cd[0].adjSuit === this.trumpSuit && arr[0].length === this.pairs) {
+      } else if(cd[0].adjSuit === 'trump' && arr[0].length === this.pairs) {
         if(this.pairs > 0) {
           value = arr[0].reduce((acc, cur) => Math.max(acc, cur[0].adjustedValue), 0); 
         } else {

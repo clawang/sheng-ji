@@ -40,20 +40,29 @@ function CreateGame(props) {
 	const [socket, setSocket] = useState(props.socket);
 	const [message, setMessage] = useState('');
 	const [settings, setSettings] = useState({
-		rank: 2
+		rank: 2,
+		decks: 2
 	});
 
 	const changeRank = (evt) => {
 		setSettings({...settings, rank: evt.target.value});
 	}
 
+	const changeDecks = (evt) => {
+		setSettings({...settings, decks: evt.target.value});
+	}
+
 	const createGame = (evt) => {
 		evt.preventDefault();
 		if(settings.rank >= 2 && settings.rank <= 14) {
-			socket.emit('create game', settings, (res) => {
-				props.code.current = res;
-				props.setRoom(0);
-			});
+			if(settings.decks >= 1 && settings.decks <= 2) {
+				socket.emit('create game', settings, (res) => {
+					props.code.current = res;
+					props.setRoom(0);
+				});
+			} else {
+				setMessage('The number of decks must be between 1 and 2.');
+			}
 		} else {
 			setMessage('The trump rank must be between 2 and 14.');
 		}
@@ -68,6 +77,8 @@ function CreateGame(props) {
 					<form id="edit-settings">
 		              <label>Trump Rank</label><br/>
 		               <input id="setTrumpValue" name="setTrumpValue" autoComplete="off" defaultValue="2" min="2" max="14" type="number" onChange={changeRank}/><br/>
+		               <label>Number of Decks</label><br/>
+		               <input id="setDeckCount" name="setDeckCount" autoComplete="off" defaultValue="2" min="1" max="2" type="number" onChange={changeDecks}/><br/>
 		              <button onClick={createGame}>Create Game</button>
 		            </form>
 		            <p id="login-error" className="error-message">{message}</p>

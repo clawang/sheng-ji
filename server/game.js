@@ -189,7 +189,7 @@ class Game {
   }
 
   editSettings(set) {
-    this.deckCount = 2;
+    this.deckCount = set.decks;
     this.fullDeck = helper.createDeck(this.deckCount);
     this.fullDeck = this.fullDeck.sort(() => Math.random() - 0.5);
     this.trumpValue = parseInt(set.rank);
@@ -329,19 +329,20 @@ class Game {
           }
         } else { //top play
           let minSing = arr[1].reduce((acc, cur) => Math.min(acc, cur.adjustedValue), 200);
-          let minPair = arr[0].reduce((acc, cur) => Math.min(acc, cur.adjustedValue), 200);
+          let minPair = arr[0].reduce((acc, cur) => Math.min(acc, cur[0].adjustedValue), 200);
+          let playersHand = [];
+          let temp = [];
           for(let i = 0; i < 4; i++) {
-            let temp;
             if(id !== i) {
               let playerHand = helper.findPairs(this.players[this.playerIds[i]].hand);
-              temp = playerHand[1].filter(h => h.adjSuit === play[0].adjSuit && h.adjustedValue > minSing);
-              temp.concat(playerHand[0].filter(h => h.adjSuit === play[0].adjSuit && h.adjustedValue > minPair));
+              playersHand.concat(this.players[this.playerIds[i]].hand);
             } else {
               let leftover = helper.splitCards(cards, play);
-              let leftPair = helper.findPairs(leftover);
-              temp = leftPair[1].filter(h => h.adjSuit === play[0].adjSuit && h.adjustedValue > minSing);
-              temp.concat(leftPair[0].filter(h => h.adjSuit === play[0].adjSuit && h.adjustedValue > minPair));
+              playersHand.concat(leftover);
             }
+            let tempPair = helper.findPairs(temp);
+            temp = tempPair[1].filter(h => h.adjSuit === play[0].adjSuit && h.adjustedValue > minSing);
+            temp.concat(tempPair[0].filter(h => h.adjSuit === play[0].adjSuit && h.adjustedValue > minPair));
             if(temp.length > 0) { //invalid play
               return 'You need to play pairs or the highest cards left in a suit';
             }
@@ -359,9 +360,8 @@ class Game {
       if(play.length !== this.currentRound.count) {
         return "You need to play " + this.currentRound.count + " card" + (this.currentRound.count > 1 ? "s" : "");
       } else if((play[0].adjSuit === this.currentRound.suit && suitCheck.length === 0) || leftover.findIndex(cd => cd.adjSuit === this.currentRound.suit) < 0) {
-        let pairsLeft = helper.findPairs(leftover.filter(l => l.adjSuit === this.currentRound.suit));
         let pairs = helper.findPairs(cards.filter(l => l.adjSuit === this.currentRound.suit));
-        if(arr[0].length >= this.currentRound.pairs || (pairsLeft[0].length <= 0 && pairs[0].length < this.currentRound.pairs)) {
+        if(arr[0].length >= this.currentRound.pairs || (pairs[0].length < this.currentRound.pairs && pairs[0].length === arr[0].length)) {
           return 'success';
         } else {
           return "You need to play a pair if you have one";

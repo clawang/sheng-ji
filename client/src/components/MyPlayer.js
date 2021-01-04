@@ -15,12 +15,10 @@ function MyPlayer(props) {
     const [mouseOver, setMouse] = useState(false);
     const [winner, setWinner] = useState(false);
     const [trumpSuit, setTrump] = useState(null);
+    const [turn, setTurn] = useState(false);
     const playDetails = useRef({
-        currentSuit: '',
         state: 0, //0 is normal play, 1 is dealing, 2 is switching
         playerId: -1,
-        turn: false,
-        plays: 0,
         rank: null,
         decks: 0,
         handLength: 0
@@ -30,18 +28,17 @@ function MyPlayer(props) {
     const playHand = useRef(null);
     const prevPlay = useRef(null);
 
-    console.log(trumpSuit);
-
     useEffect(() => {
     	socket.on('my hand', function(data) {
-	        playDetails.current = {...playDetails.current, playerId: data.playerId, rank: data.rank, turn: true, decks: data.decks, handLength: Math.floor(data.decks * 54 / 4) - ((data.decks * 54 % 4) * -0.5 + 2)};
-	        let temp = [];
+	        playDetails.current = {...playDetails.current, playerId: data.playerId, rank: data.rank, decks: data.decks, handLength: Math.floor(data.decks * 54 / 4) - ((data.decks * 54 % 4) * -0.5 + 2)};
+            let temp = [];
 	    	let positions = calculateCardPosition(0, data.hand.length);
 	    	data.hand.forEach((cd, i) => {
 				temp.push({obj: cd, dom: {}, position: positions[i][0], top: positions[i][1], checked: false});
 			});
             if(data.dealing) {
-                playDetails.current = {...playDetails.current, state: 1, turn: true};
+                playDetails.current = {...playDetails.current, state: 1};
+                setTurn(true);
                 props.sendMessage({body: "Play a card with the trump rank to set the trump suit."});
                 hand.current = temp;
                 displayCards(temp, 0);
@@ -56,7 +53,7 @@ function MyPlayer(props) {
             }
       	});
         socket.on('trump set', function(data) {
-            playDetails.current = {...playDetails.current, turn: false};
+            setTurn(false);
             if(data.username.length > 0) {
                 props.sendMessage({body: data.username + ' set the trump suit to ' + data.suit});
             } else {
@@ -69,7 +66,7 @@ function MyPlayer(props) {
         });
         socket.on('next turn', function(data) {
         	if(data.turn === playDetails.current.playerId) {
-        		playDetails.current = {...playDetails.current, turn: true, currentSuit: data.suit, plays: data.plays};
+        		setTurn(true);
         	} 
         })
         socket.on('win round', function(win) {
@@ -106,7 +103,8 @@ function MyPlayer(props) {
             props.sendMessage({body: "Select "+ (playDetails.current.decks % 2 * -2 + 8) +" cards to discard.", color: 'green'});
         }
         socket.on('swap cards', function(data) {
-            playDetails.current = {...playDetails.current, state: 2, turn: true, playerId: data.id};
+            playDetails.current = {...playDetails.current, state: 2, playerId: data.id};
+            setTurn(true);
             let temp = [];
             data.newCards.forEach(c => {
                 temp.push({obj: c, dom: {}, checked: false});
@@ -218,11 +216,11 @@ function MyPlayer(props) {
                     props.sendMessage({body: "That card isn't of the trump rank!", color: 'red'});
                 }
             }
-        } else if(playDetails.current.turn) {
+        } else if(turn) {
             if(result.length < 1) {
                 props.sendMessage({body: "You didn't select a card!", color: 'red'});
             } else {
-                socket.emit('submit hand', {cards: result, id: playDetails.current.playerId}, (res) => {
+                socket.emit('validate hand', {cards: result, id: playDetails.current.playerId}, (res) => {
                     if(res === 'success') {
                         setPlayCards(playCards => []);
                         let positions = calculateCardPosition(2, result.length);
@@ -235,12 +233,13 @@ function MyPlayer(props) {
                             cd.left = positions[i][0];
                             cds.push(cd);
                         }
+                        setTurn(false);
                         setTimeout(function(){ 
+                            socket.emit('submit hand', {cards: result.map(cd => cd.index), id: playDetails.current.playerId});
                             let temp = cards;
                             setCards({type: 'replace', items: cards.filter(v => !remove.includes(v.obj.key))});
                             setPlayCards(playCards => playCards.concat(cds));
                             setCardHistory({type: 'concat', items: cds.map(crd => { return {obj: crd, left: prevPlay.current.clientWidth / 2}})});
-                            playDetails.current = {...playDetails.current, turn: false};
                         }, 1000);
                     } else {
                         props.sendMessage({body: "Not a valid play!", subtitle: res, color: 'red'});
@@ -307,7 +306,7 @@ function MyPlayer(props) {
     const skipSubmit = (evt) => {
         evt.preventDefault();
         socket.emit('set suit', '');
-        playDetails.current = {...playDetails.current, turn: false};
+        setTurn(false);
     }
 
     const sortCards = (suit) => {
@@ -363,8 +362,8 @@ function MyPlayer(props) {
                                 {cards.map((c, i) => <Card cd={c.obj} checked={c.checked} key={c.obj.key} left={c.position} top={c.top} getRef={(ref) => getRef(ref, i, 'active')} handleChange={() => checkCard(i)} />)}
                             </div>
                         </div>
-                        {cards.length > 0 ? <button id="hand-submit" disabled={!playDetails.current.turn && (playDetails.current.state === 0 || playDetails.current.state === 1)} onClick={confirmPlay}>Confirm Play</button> : ''}
-                        {playDetails.current.state === 1 && playDetails.current.turn ? <button id="skip-submit" onClick={skipSubmit}>Skip</button> : ''}
+                        {cards.length > 0 ? <button id="hand-submit" disabled={!turn && (playDetails.current.state === 0 || playDetails.current.state === 1)} onClick={confirmPlay}>Confirm Play</button> : ''}
+                        {playDetails.current.state === 1 && turn ? <button id="skip-submit" onClick={skipSubmit}>Skip</button> : ''}
                     </form>
                 </div>
             </div>
