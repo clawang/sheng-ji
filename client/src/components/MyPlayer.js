@@ -6,6 +6,8 @@ import {TweenMax} from 'gsap';
 import {sortFunction} from '../createDeck';
 import {useReducerWithPromise} from './useStateWithPromise';
 
+let handCardsHeight = ['110px', '150px'];
+
 function MyPlayer(props) {
     const [socket, setSocket] = useState(props.socket);
     const [cards, setCards] = useReducerWithPromise(reducer, []);
@@ -16,6 +18,7 @@ function MyPlayer(props) {
     const [winner, setWinner] = useState(false);
     const [trumpSuit, setTrump] = useState(null);
     const [turn, setTurn] = useState(false);
+    const [portrait, setPortrait] = useState(false);
     const playDetails = useRef({
         state: 0, //0 is normal play, 1 is dealing, 2 is switching
         playerId: -1,
@@ -29,6 +32,10 @@ function MyPlayer(props) {
     const prevPlay = useRef(null);
 
     useEffect(() => {
+        if(window.innerWidth < window.innerHeight) {
+          setPortrait(true);
+          handCardsHeight = ['80px', '120px'];
+        }
     	socket.on('my hand', function(data) {
 	        playDetails.current = {...playDetails.current, playerId: data.playerId, rank: data.rank, decks: data.decks, handLength: Math.floor(data.decks * 54 / 4) - ((data.decks * 54 % 4) * -0.5 + 2)};
             let temp = [];
@@ -98,6 +105,7 @@ function MyPlayer(props) {
         }
         if(cards.length >= playDetails.current.handLength && playDetails.current.state === 1) {
             socket.emit('finished deal');
+            hand.current = [];
         }
         if(cards.length > playDetails.current.handLength && playDetails.current.state === 2) {
             props.sendMessage({body: "Select "+ (playDetails.current.decks % 2 * -2 + 8) +" cards to discard.", color: 'green'});
@@ -192,7 +200,7 @@ function MyPlayer(props) {
                 props.sendMessage({body: "", color: ''});
                 let indices = [];
                 result.forEach((r, i) => {
-                    let c = cards.findIndex(cd => cd.obj.index === r.index);
+                    let c = cards.findIndex(cd => cd.obj.key === r.key);
                     animateCard(c, i, discardLength);
                     indices.push(c);
                 })
@@ -254,10 +262,15 @@ function MyPlayer(props) {
         obj.checked = false;
         let positions = calculateCardPosition(2, total);
         setCards({type: 'update', index: c, item: obj});
-        let xPos = positions[i][0] - 31 - cards[c].position;
-        let yPos = (playHand.current.clientHeight + 13 + positions[i][1]) * -1;
+        let xPos = positions[i][0] - cards[c].position;
+        if(!portrait) {
+            xPos -= 31;
+        }
+        let yPos = (playHand.current.clientHeight + 13 + obj.top) * -1;
         let card = cards[c].obj;
-        TweenMax.to(obj.dom.current, 1, {x: xPos, y: yPos, width: '60px', height: '80px', borderRadius: '5px'});
+        let w = (window.innerWidth <= 600 ? '50px' : '60px');
+        let h = (window.innerWidth <= 600 ? '70px' : '80px');
+        TweenMax.to(obj.dom.current, 1, {x: xPos, y: yPos, width: w, height: h, borderRadius: '5px'});
         return card;
     }
 
@@ -357,7 +370,7 @@ function MyPlayer(props) {
             <div className="my-player">
                 <div className="hand">
                     <form id="hand-form" action="">
-                        <div className="hand-cards" ref={element} style={{height: (cards.length > 20 ? '150px' : '110px')}}>
+                        <div className="hand-cards" ref={element} style={{height: (cards.length > 20 ? handCardsHeight[1] : handCardsHeight[0])}}>
                             <div>
                                 {cards.map((c, i) => <Card cd={c.obj} checked={c.checked} key={c.obj.key} left={c.position} top={c.top} getRef={(ref) => getRef(ref, i, 'active')} handleChange={() => checkCard(i)} />)}
                             </div>

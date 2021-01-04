@@ -40,10 +40,20 @@ function Discard(props) {
     //console.log(cards);
 
     return (
-        <div id="discard" style={props.visible ? {display: 'block'} : {display: 'none'}}>
-            <h2>Discard Pile</h2>
-            <div id="discard-cards">{cards.map((cd, i) => <CardInactive cd={cd} key={cd.index} win={winner[i]}/>)}</div>
-            <p id="discard-points">{message}</p>
+        <div id="discard-wrapper" style={props.visible ? {display: 'flex'} : {display: 'none'}}>
+            <div id="discard">
+                <h2>Discard Pile</h2>
+                <div id="discard-cards">
+                    {cards.map((cd, i) => {
+                        return (
+                            <div className="card-inactive-wrapper">
+                                <CardInactive cd={cd} key={cd.index} win={winner[i]}/>
+                            </div>
+                        );
+                    })}
+                </div>
+                <p id="discard-points">{message}</p>
+            </div>
         </div>
     );
 }

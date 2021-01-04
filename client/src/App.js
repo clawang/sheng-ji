@@ -8,7 +8,7 @@ import {Instructions} from './components/GameStart';
 import socketIOClient from 'socket.io-client';
 import Div100vh from 'react-div-100vh';
 const ENDPOINT = 'http://localhost:8888/';
-const socket = socketIOClient();
+const socket = socketIOClient(ENDPOINT);
 
 function App() {
 

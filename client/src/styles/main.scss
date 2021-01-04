@@ -498,20 +498,33 @@ select:focus {
     text-align: center;
 }
 
-#discard {
+#discard-wrapper {
     z-index: 50;
     position: absolute;
-    margin: 50px auto;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+}
+
+#discard {
     background: white;
     box-shadow: 2px 2px 0px #999;
     padding: 40px;
     width: 500px;
     height: 220px;
-    top: 200px;
     text-align: center;
+    margin-top: -50px;
 
     #discard-cards {
         margin: 15px 0;
+        width: 100%;
+        display: flex;
+        align-content: center;
+
+        .card-inactive-wrapper {
+            overflow: hidden;
+        }
 
         .card-container {
             border: 1px solid #ddd;
